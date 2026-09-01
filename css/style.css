@@ -676,19 +676,25 @@ p { font-size: 14px; color: var(--body); }
 }
 
 .modal-backdrop.active {
-  opacity: 1;
-  pointer-events: auto;
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 99999 !important;
 }
 
 .modal-card {
-  background-color: var(--canvas);
+  background-color: #ffffff !important;
   width: 90%;
   max-width: 520px;
   border-radius: var(--rounded-xl);
   padding: var(--spacing-xl);
-  box-shadow: var(--shadow-modal);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
   border: 1px solid var(--hairline);
-  transform: translateY(10px);
+  position: relative !important;
+  z-index: 100001 !important;
+  opacity: 1 !important;
+  display: block !important;
+  transform: translateY(0) !important;
   transition: transform 0.2s ease;
 }
 

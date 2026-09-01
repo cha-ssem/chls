@@ -3,20 +3,28 @@
  * Cal.com UI Design System & Business Logic
  */
 
-// 전역 모달 제어 함수 (HTML onclick 인라인 이벤트 100% 작동 보장)
-function openAuthModal() {
+// 전역 모달 제어 함수 (Top-level Global Scope)
+window.openAuthModal = function() {
   const authForm = document.querySelector("#auth-form");
   if (authForm) authForm.reset();
   const modalAuth = document.querySelector("#modal-auth");
-  if (modalAuth) modalAuth.classList.add("active");
-}
+  if (modalAuth) {
+    modalAuth.style.display = "flex";
+    modalAuth.style.opacity = "1";
+    modalAuth.style.pointerEvents = "auto";
+    modalAuth.style.zIndex = "99999";
+    modalAuth.classList.add("active");
+  }
+};
 
-function closeAllModals() {
-  document.querySelectorAll(".modal-backdrop").forEach(m => m.classList.remove("active"));
-}
-
-window.openAuthModal = openAuthModal;
-window.closeAllModals = closeAllModals;
+window.closeAllModals = function() {
+  document.querySelectorAll(".modal-backdrop").forEach(m => {
+    m.classList.remove("active");
+    m.style.display = "none";
+    m.style.opacity = "0";
+    m.style.pointerEvents = "none";
+  });
+};
 
 document.addEventListener("DOMContentLoaded", async () => {
   // 앱 상태 (State)
@@ -37,15 +45,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => document.querySelectorAll(selector);
 
-  // Initial Load
-  await renderApp();
+  // 안전한 이벤트 바인딩 헬퍼 함수 (null 참조 에러 원천 차단)
+  const on = (selector, event, handler) => {
+    const el = typeof selector === "string" ? $(selector) : selector;
+    if (el) {
+      el.addEventListener(event, handler);
+    }
+  };
+
+
 
   // ===== 이벤트 리스너 등록 =====
   
   // 1. 메인 탭 전환 (nav-pill-group)
   $$(".category-tab[data-tab]").forEach(tab => {
-    tab.addEventListener("click", (e) => {
-      $$(".category-tab[data-tab]").forEach(t => t.classList.remove("active"));
+    on(tab, "click", (e) => {
+      $$(".category-tab[data-tab]").forEach(t => t && t.classList.remove("active"));
       tab.classList.add("active");
       state.currentTab = tab.dataset.tab;
       
@@ -71,8 +86,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // 2. 뷰 전환 (리스트 보기 vs 월별 보기)
   $$(".view-btn[data-view]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      $$(".view-btn[data-view]").forEach(b => b.classList.remove("active"));
+    on(btn, "click", () => {
+      $$(".view-btn[data-view]").forEach(b => b && b.classList.remove("active"));
       btn.classList.add("active");
       state.currentView = btn.dataset.view;
       renderApp();
@@ -80,141 +95,138 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // 3. 강의 필터 & 검색
-  $("#lecture-month-filter").addEventListener("change", (e) => {
+  on("#lecture-month-filter", "change", (e) => {
     state.lectureFilterMonth = e.target.value;
     renderLectures();
   });
-  $("#lecture-status-filter").addEventListener("change", (e) => {
+  on("#lecture-status-filter", "change", (e) => {
     state.lectureFilterStatus = e.target.value;
     renderLectures();
   });
-  $("#lecture-search-input").addEventListener("input", (e) => {
+  on("#lecture-search-input", "input", (e) => {
     state.lectureSearchQuery = e.target.value.toLowerCase().trim();
     renderLectures();
   });
 
   // 4. 구독 필터 & 검색
-  $("#sub-month-filter").addEventListener("change", (e) => {
+  on("#sub-month-filter", "change", (e) => {
     state.subFilterMonth = e.target.value;
     renderSubscriptions();
   });
-  $("#sub-status-filter").addEventListener("change", (e) => {
+  on("#sub-status-filter", "change", (e) => {
     state.subFilterStatus = e.target.value;
     renderSubscriptions();
   });
-  $("#sub-search-input").addEventListener("input", (e) => {
+  on("#sub-search-input", "input", (e) => {
     state.subSearchQuery = e.target.value.toLowerCase().trim();
     renderSubscriptions();
   });
 
   // 5. 관리자 인증 모달 오픈
-  $("#btn-admin-login").addEventListener("click", () => openAuthModal());
+  on("#btn-admin-login", "click", () => openAuthModal());
 
   // 모달 닫기
   $$(".close-modal-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      closeAllModals();
-    });
+    on(btn, "click", () => closeAllModals());
   });
 
   // 6. 강의 폼 제출
-  const lecForm = $("#lecture-form");
-  if (lecForm) {
-    lecForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = {
-        date: $("#lec-date") ? $("#lec-date").value : "",
-        topic: $("#lec-topic") ? $("#lec-topic").value : "",
-        target: $("#lec-target") ? $("#lec-target").value : "",
-        location: $("#lec-location") ? $("#lec-location").value : "",
-        time: $("#lec-time") ? $("#lec-time").value : "",
-        fee: $("#lec-fee") ? (Number($("#lec-fee").value) || 0) : 0,
-        groupTitle: $("#lec-group") ? $("#lec-group").value : "",
-        remarks: $("#lec-remarks") ? $("#lec-remarks").value : ""
-      };
+  on("#lecture-form", "submit", async (e) => {
+    e.preventDefault();
+    const formData = {
+      date: $("#lec-date") ? $("#lec-date").value : "",
+      topic: $("#lec-topic") ? $("#lec-topic").value : "",
+      target: $("#lec-target") ? $("#lec-target").value : "",
+      location: $("#lec-location") ? $("#lec-location").value : "",
+      time: $("#lec-time") ? $("#lec-time").value : "",
+      fee: $("#lec-fee") ? (Number($("#lec-fee").value) || 0) : 0,
+      groupTitle: $("#lec-group") ? $("#lec-group").value : "",
+      remarks: $("#lec-remarks") ? $("#lec-remarks").value : ""
+    };
 
-      if (state.editingItem) {
-        await window.dataStore.updateLecture(state.editingItem.id, formData);
-      } else {
-        await window.dataStore.addLecture(formData);
-      }
+    if (state.editingItem) {
+      await window.dataStore.updateLecture(state.editingItem.id, formData);
+    } else {
+      await window.dataStore.addLecture(formData);
+    }
 
-      closeAllModals();
-      await renderApp();
-    });
-  }
-
-  // 7. 구독 폼 제출
-  const subForm = $("#sub-form") || $("#subscription-form");
-  if (subForm) {
-    subForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const usdEl = $("#sub-usd") || $("#form-sub-usd");
-      const usd = usdEl ? (Number(usdEl.value) || 0) : 0;
-      const krw = Math.round(usd * state.exchangeRate);
-
-      const formData = {
-        title: $("#sub-title-input") ? $("#sub-title-input").value : "",
-        siteUrl: $("#sub-url") ? $("#sub-url").value : "",
-        expiryDate: $("#sub-expiry") ? $("#sub-expiry").value : "",
-        amountUSD: usd,
-        amountKRW: krw,
-        payDate: $("#sub-paydate") ? $("#sub-paydate").value : "",
-        groupTitle: $("#sub-group-input") ? $("#sub-group-input").value : "",
-        remarks: $("#sub-remarks") ? $("#sub-remarks").value : ""
-      };
-
-      if (state.editingItem) {
-        await window.dataStore.updateSubscription(state.editingItem.id, formData);
-      } else {
-        await window.dataStore.addSubscription(formData);
-      }
-
-      closeAllModals();
-      await renderApp();
-    });
-  }
-
-  // 8. 네이버 환율 계산기 입력 연동
-  $("#calc-usd-input").addEventListener("input", (e) => {
-    const usd = parseFloat(e.target.value) || 0;
-    const krw = Math.round(usd * state.exchangeRate);
-    $("#calc-krw-result").value = krw.toLocaleString() + " 원";
+    closeAllModals();
+    await renderApp();
   });
 
-  $("#calc-rate-input").addEventListener("input", (e) => {
-    state.exchangeRate = parseFloat(e.target.value) || 1350;
-    const usd = parseFloat($("#calc-usd-input").value) || 0;
+  // 7. 구독 폼 제출
+  const subFormSelector = $("#sub-form") ? "#sub-form" : "#subscription-form";
+  on(subFormSelector, "submit", async (e) => {
+    e.preventDefault();
+    const usdEl = $("#sub-usd") || $("#form-sub-usd");
+    const usd = usdEl ? (Number(usdEl.value) || 0) : 0;
     const krw = Math.round(usd * state.exchangeRate);
-    $("#calc-krw-result").value = krw.toLocaleString() + " 원";
-    $("#current-rate-display").textContent = state.exchangeRate.toLocaleString();
+
+    const formData = {
+      title: $("#sub-title-input") ? $("#sub-title-input").value : "",
+      siteUrl: $("#sub-url") ? $("#sub-url").value : "",
+      expiryDate: $("#sub-expiry") ? $("#sub-expiry").value : "",
+      amountUSD: usd,
+      amountKRW: krw,
+      payDate: $("#sub-paydate") ? $("#sub-paydate").value : "",
+      groupTitle: $("#sub-group-input") ? $("#sub-group-input").value : "",
+      remarks: $("#sub-remarks") ? $("#sub-remarks").value : ""
+    };
+
+    if (state.editingItem) {
+      await window.dataStore.updateSubscription(state.editingItem.id, formData);
+    } else {
+      await window.dataStore.addSubscription(formData);
+    }
+
+    closeAllModals();
+    await renderApp();
+  });
+
+  // 8. 네이버 환율 계산기 입력 연동
+  on("#calc-usd-input", "input", (e) => {
+    const usd = parseFloat(e.target.value) || 0;
+    const krw = Math.round(usd * state.exchangeRate);
+    const krwRes = $("#calc-krw-result");
+    if (krwRes) krwRes.value = krw.toLocaleString() + " 원";
+  });
+
+  on("#calc-rate-input", "input", (e) => {
+    state.exchangeRate = parseFloat(e.target.value) || 1350;
+    const usdInput = $("#calc-usd-input");
+    const usd = usdInput ? (parseFloat(usdInput.value) || 0) : 0;
+    const krw = Math.round(usd * state.exchangeRate);
+    const krwRes = $("#calc-krw-result");
+    if (krwRes) krwRes.value = krw.toLocaleString() + " 원";
+    const rateDisp = $("#current-rate-display");
+    if (rateDisp) rateDisp.textContent = state.exchangeRate.toLocaleString();
   });
 
   // 9. 관리자 비밀번호 인증 폼 제출
-  const authForm = $("#auth-form");
-  if (authForm) {
-    authForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const pinInput = $("#auth-pin-input");
-      const pin = pinInput ? pinInput.value.trim() : "";
-      if (window.adminAuth.verifyOTP(pin)) {
-        alert("관리자 인증에 성공하였습니다!");
-        closeAllModals();
-        updateAuthUI();
-        renderApp();
-      } else {
-        alert("비밀번호가 올바르지 않습니다. (기본 PIN: 123456)");
-      }
-    });
-  }
+  on("#auth-form", "submit", (e) => {
+    e.preventDefault();
+    const pinInput = $("#auth-pin-input");
+    const pin = pinInput ? pinInput.value.trim() : "";
+    if (window.adminAuth.verifyOTP(pin)) {
+      alert("관리자 인증에 성공하였습니다!");
+      closeAllModals();
+      updateAuthUI();
+      renderApp();
+    } else {
+      alert("비밀번호가 올바르지 않습니다. (기본 PIN: 123456)");
+    }
+  });
+
+  // Initial Load (이벤트 등록 후 화면 렌더링)
+  renderApp();
 
   // Global render caller
   async function renderApp() {
-    updateAuthUI();
-    await updateMonthFilterOptions();
-    await renderDashboard();
-    await renderLectures();
-    await renderSubscriptions();
+    try { updateAuthUI(); } catch (e) { console.warn("updateAuthUI err:", e); }
+    try { await updateMonthFilterOptions(); } catch (e) { console.warn("updateMonthFilterOptions err:", e); }
+    try { await renderDashboard(); } catch (e) { console.warn("renderDashboard err:", e); }
+    try { await renderLectures(); } catch (e) { console.warn("renderLectures err:", e); }
+    try { await renderSubscriptions(); } catch (e) { console.warn("renderSubscriptions err:", e); }
   }
 
   async function updateMonthFilterOptions() {
@@ -259,13 +271,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // 비로그인 상태일 때 대시보드 통계 보안 가림 처리
     if (!window.adminAuth.isAdminLoggedIn) {
-      $("#stat-total-fee").textContent = "🔒 로그인 필요";
-      $("#stat-completed-fee").textContent = "관리자 전용 비공개";
+      if ($("#stat-total-fee")) $("#stat-total-fee").textContent = "🔒 로그인 필요";
+      if ($("#stat-completed-fee")) $("#stat-completed-fee").textContent = "관리자 전용 비공개";
 
-      $("#stat-sub-cost").textContent = "🔒 로그인 필요";
-      $("#stat-sub-count").textContent = "관리자 전용 비공개";
+      if ($("#stat-sub-cost")) $("#stat-sub-cost").textContent = "🔒 로그인 필요";
+      if ($("#stat-sub-count")) $("#stat-sub-count").textContent = "관리자 전용 비공개";
 
-      $("#stat-net-income").textContent = "🔒 로그인 필요";
+      if ($("#stat-net-income")) $("#stat-net-income").textContent = "🔒 로그인 필요";
       if ($("#stat-net-subtext")) {
         $("#stat-net-subtext").textContent = "관리자 로그인 시 실시간 집계";
       }
@@ -300,20 +312,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     if ($("#stat-net-title")) {
       $("#stat-net-title").textContent = `${formattedMonthStr} 강의 수입`;
     }
-    $("#stat-net-income").textContent = currentMonthFee.toLocaleString() + "원";
+    if ($("#stat-net-income")) {
+      $("#stat-net-income").textContent = currentMonthFee.toLocaleString() + "원";
+    }
     if ($("#stat-net-subtext")) {
       $("#stat-net-subtext").textContent = `${formattedMonthStr} 완료: ${currentMonthCompletedFee.toLocaleString()}원`;
     }
 
     // 2. 전체 강의 수입
-    $("#stat-total-fee").textContent = totalLectureFee.toLocaleString() + "원";
-    $("#stat-completed-fee").textContent = `완료: ${completedLectureFee.toLocaleString()}원`;
+    if ($("#stat-total-fee")) {
+      $("#stat-total-fee").textContent = totalLectureFee.toLocaleString() + "원";
+    }
+    if ($("#stat-completed-fee")) {
+      $("#stat-completed-fee").textContent = `완료: ${completedLectureFee.toLocaleString()}원`;
+    }
 
     // 3. 당월 구독 지출
     if ($("#stat-sub-cost-title")) {
       $("#stat-sub-cost-title").textContent = `${formattedMonthStr} 구독 지출`;
     }
-    $("#stat-sub-cost").textContent = `${currentMonthSubKRW.toLocaleString()}원 ($${currentMonthSubUSD})`;
+    if ($("#stat-sub-cost")) {
+      $("#stat-sub-cost").textContent = `${currentMonthSubKRW.toLocaleString()}원 ($${currentMonthSubUSD})`;
+    }
     if ($("#stat-sub-count")) {
       $("#stat-sub-count").textContent = `${formattedMonthStr} 결제: ${currentMonthSubs.length}건 (전체 구독 ${subs.length}개)`;
     }
@@ -466,7 +486,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function bindLectureTableEvents(tbodyEl) {
+    if (!tbodyEl) return;
     tbodyEl.querySelectorAll('[data-action="toggle-lecture"]').forEach(btn => {
+      if (!btn) return;
       btn.addEventListener("click", async (e) => {
         if (!checkAdminPermission()) return;
         const id = e.currentTarget.dataset.id;
@@ -480,6 +502,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     tbodyEl.querySelectorAll('[data-action="copy-lecture"]').forEach(btn => {
+      if (!btn) return;
       btn.addEventListener("click", async (e) => {
         if (!checkAdminPermission()) return;
         const id = e.currentTarget.dataset.id;
@@ -490,6 +513,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     tbodyEl.querySelectorAll('[data-action="edit-lecture"]').forEach(btn => {
+      if (!btn) return;
       btn.addEventListener("click", async (e) => {
         if (!checkAdminPermission()) return;
         const id = e.currentTarget.dataset.id;
@@ -500,6 +524,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     tbodyEl.querySelectorAll('[data-action="delete-lecture"]').forEach(btn => {
+      if (!btn) return;
       btn.addEventListener("click", async (e) => {
         if (!checkAdminPermission()) return;
         if (confirm("이 강의 내역을 삭제하시겠습니까?")) {
@@ -714,7 +739,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function bindSubTableEvents(tbodyEl) {
+    if (!tbodyEl) return;
     tbodyEl.querySelectorAll('[data-action="toggle-sub"]').forEach(btn => {
+      if (!btn) return;
       btn.addEventListener("click", async (e) => {
         if (!checkAdminPermission()) return;
         const id = e.currentTarget.dataset.id;
@@ -728,6 +755,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     tbodyEl.querySelectorAll('[data-action="copy-sub"]').forEach(btn => {
+      if (!btn) return;
       btn.addEventListener("click", async (e) => {
         if (!checkAdminPermission()) return;
         const id = e.currentTarget.dataset.id;
@@ -738,6 +766,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     tbodyEl.querySelectorAll('[data-action="edit-sub"]').forEach(btn => {
+      if (!btn) return;
       btn.addEventListener("click", async (e) => {
         if (!checkAdminPermission()) return;
         const id = e.currentTarget.dataset.id;
@@ -748,6 +777,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     tbodyEl.querySelectorAll('[data-action="delete-sub"]').forEach(btn => {
+      if (!btn) return;
       btn.addEventListener("click", async (e) => {
         if (!checkAdminPermission()) return;
         if (confirm("이 구독 내역을 삭제하시겠습니까?")) {
@@ -917,7 +947,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  async function openLectureModal(item = null, isCopy = false) {
+  window.openLectureModal = async function(item = null, isCopy = false) {
     if (!checkAdminPermission()) return;
     await updateGroupDatalists();
 
@@ -945,10 +975,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const modal = $("#modal-lecture");
-    if (modal) modal.classList.add("active");
-  }
+    if (modal) {
+      modal.style.display = "flex";
+      modal.style.opacity = "1";
+      modal.style.pointerEvents = "auto";
+      modal.style.zIndex = "99999";
+      modal.classList.add("active");
+    }
+  };
 
-  async function openSubscriptionModal(item = null, isCopy = false) {
+  window.openSubscriptionModal = async function(item = null, isCopy = false) {
     if (!checkAdminPermission()) return;
     await updateGroupDatalists();
 
@@ -975,23 +1011,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const modal = $("#modal-subscription");
-    if (modal) modal.classList.add("active");
-  }
+    if (modal) {
+      modal.style.display = "flex";
+      modal.style.opacity = "1";
+      modal.style.pointerEvents = "auto";
+      modal.style.zIndex = "99999";
+      modal.classList.add("active");
+    }
+  };
 
-  function openAuthModal() {
-    const authForm = $("#auth-form");
+  window.openAuthModal = function() {
+    const authForm = document.querySelector("#auth-form");
     if (authForm) authForm.reset();
-    const modalAuth = $("#modal-auth");
-    if (modalAuth) modalAuth.classList.add("active");
-  }
+    const modalAuth = document.querySelector("#modal-auth");
+    if (modalAuth) {
+      modalAuth.style.display = "flex";
+      modalAuth.style.opacity = "1";
+      modalAuth.style.pointerEvents = "auto";
+      modalAuth.style.zIndex = "99999";
+      modalAuth.classList.add("active");
+    }
+  };
 
-  function closeAllModals() {
-    $$(".modal-backdrop").forEach(m => m.classList.remove("active"));
-  }
-
-  // 전역 함수 노출 (인라인 HTML 이벤트 지원)
-  window.openAuthModal = openAuthModal;
-  window.closeAllModals = closeAllModals;
+  window.closeAllModals = function() {
+    document.querySelectorAll(".modal-backdrop").forEach(m => {
+      m.classList.remove("active");
+      m.style.display = "none";
+      m.style.opacity = "0";
+      m.style.pointerEvents = "none";
+    });
+  };
 
   function escapeHtml(str) {
     if (!str) return "";

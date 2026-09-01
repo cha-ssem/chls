@@ -23,6 +23,12 @@ class AdminAuthService {
     this.templateId = localStorage.getItem("checkls_emailjs_template_id") || DEFAULT_EMAILJS_CONFIG.templateId;
     this.adminEmail = localStorage.getItem("checkls_admin_email") || DEFAULT_EMAILJS_CONFIG.adminEmail;
 
+    // 구형 EmailJS 스토리지 잔재 데이터 자동 정리
+    localStorage.removeItem("checkls_emailjs_public_key");
+    localStorage.removeItem("checkls_emailjs_service_id");
+    localStorage.removeItem("checkls_emailjs_template_id");
+    localStorage.removeItem("checkls_admin_email");
+
     this.initSession();
     this.initEmailJS();
   }
