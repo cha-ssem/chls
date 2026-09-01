@@ -974,6 +974,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     $$(".modal-backdrop").forEach(m => m.classList.remove("active"));
   }
 
+  // 전역 함수 노출 (인라인 HTML 이벤트 지원)
+  window.openAuthModal = openAuthModal;
+  window.closeAllModals = closeAllModals;
+
   function escapeHtml(str) {
     if (!str) return "";
     return str.replace(/[&<>"']/g, function (m) {
