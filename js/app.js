@@ -163,30 +163,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     $("#current-rate-display").textContent = state.exchangeRate.toLocaleString();
   });
 
-  // 9. EmailJS 인증 폼
-  $("#send-otp-btn").addEventListener("click", async () => {
-    const email = $("#auth-email-input").value.trim();
-    if (!email) {
-      alert("관리자 이메일 주소를 입력해주세요.");
-      return;
-    }
-    const res = await window.adminAuth.sendAdminOTP(email);
-    alert(res.message);
-    $("#otp-group").classList.remove("hidden");
-  });
-
-  $("#auth-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const otp = $("#auth-otp-input").value.trim();
-    if (window.adminAuth.verifyOTP(otp)) {
-      alert("관리자 인증에 성공하였습니다!");
-      closeAllModals();
-      updateAuthUI();
-      renderApp();
-    } else {
-      alert("인증번호가 올바르지 않습니다. (테스트 핀: 123456)");
-    }
-  });
+  // 9. 관리자 비밀번호 인증 폼 제출
+  const authForm = $("#auth-form");
+  if (authForm) {
+    authForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const pinInput = $("#auth-pin-input");
+      const pin = pinInput ? pinInput.value.trim() : "";
+      if (window.adminAuth.verifyOTP(pin)) {
+        alert("관리자 인증에 성공하였습니다!");
+        closeAllModals();
+        updateAuthUI();
+        renderApp();
+      } else {
+        alert("비밀번호가 올바르지 않습니다. (기본 PIN: 123456)");
+      }
+    });
+  }
 
   // Global render caller
   async function renderApp() {
@@ -871,7 +864,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         addSubBtn.classList.remove("hidden");
       }
     } else {
-      btn.textContent = "관리자 로그인 (EmailJS)";
+      btn.textContent = "관리자 로그인";
       btn.onclick = () => openAuthModal();
       statusBadge.innerHTML = `${fbStatus} <span class="badge-pill">🔒 비로그인 (보안 가림 모드)</span>`;
       addLecBtn.classList.add("hidden");
@@ -943,9 +936,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function openAuthModal() {
-    $("#auth-form").reset();
-    $("#otp-group").classList.add("hidden");
-    $("#modal-auth").classList.add("active");
+    const authForm = $("#auth-form");
+    if (authForm) authForm.reset();
+    const modalAuth = $("#modal-auth");
+    if (modalAuth) modalAuth.classList.add("active");
   }
 
   function closeAllModals() {
