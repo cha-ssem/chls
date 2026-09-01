@@ -34,16 +34,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       tab.classList.add("active");
       state.currentTab = tab.dataset.tab;
       
+      const lecCtrl = $("#lecture-controls");
+      const subCtrl = $("#subscription-controls");
+      const lecTab = $("#tab-lectures");
+      const subTab = $("#tab-subscriptions");
+
       if (state.currentTab === "lectures") {
-        $("#lecture-controls").classList.remove("hidden");
-        $("#subscription-controls").classList.add("hidden");
-        $("#lecture-section").classList.remove("hidden");
-        $("#subscription-section").classList.add("hidden");
+        if (lecCtrl) lecCtrl.classList.remove("hidden");
+        if (subCtrl) subCtrl.classList.add("hidden");
+        if (lecTab) lecTab.classList.remove("hidden");
+        if (subTab) subTab.classList.add("hidden");
       } else {
-        $("#lecture-controls").classList.add("hidden");
-        $("#subscription-controls").classList.remove("hidden");
-        $("#lecture-section").classList.add("hidden");
-        $("#subscription-section").classList.remove("hidden");
+        if (lecCtrl) lecCtrl.classList.add("hidden");
+        if (subCtrl) subCtrl.classList.remove("hidden");
+        if (lecTab) lecTab.classList.add("hidden");
+        if (subTab) subTab.classList.remove("hidden");
       }
       renderApp();
     });
@@ -98,55 +103,62 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // 6. 강의 폼 제출
-  $("#lecture-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const formData = {
-      date: $("#form-lec-date").value,
-      topic: $("#form-lec-topic").value,
-      target: $("#form-lec-target").value,
-      location: $("#form-lec-location").value,
-      time: $("#form-lec-time").value,
-      fee: Number($("#form-lec-fee").value) || 0,
-      groupTitle: $("#form-lec-group").value,
-      remarks: $("#form-lec-remarks").value
-    };
+  const lecForm = $("#lecture-form");
+  if (lecForm) {
+    lecForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = {
+        date: $("#lec-date") ? $("#lec-date").value : "",
+        topic: $("#lec-topic") ? $("#lec-topic").value : "",
+        target: $("#lec-target") ? $("#lec-target").value : "",
+        location: $("#lec-location") ? $("#lec-location").value : "",
+        time: $("#lec-time") ? $("#lec-time").value : "",
+        fee: $("#lec-fee") ? (Number($("#lec-fee").value) || 0) : 0,
+        groupTitle: $("#lec-group") ? $("#lec-group").value : "",
+        remarks: $("#lec-remarks") ? $("#lec-remarks").value : ""
+      };
 
-    if (state.editingItem) {
-      await window.dataStore.updateLecture(state.editingItem.id, formData);
-    } else {
-      await window.dataStore.addLecture(formData);
-    }
+      if (state.editingItem) {
+        await window.dataStore.updateLecture(state.editingItem.id, formData);
+      } else {
+        await window.dataStore.addLecture(formData);
+      }
 
-    closeAllModals();
-    await renderApp();
-  });
+      closeAllModals();
+      await renderApp();
+    });
+  }
 
   // 7. 구독 폼 제출
-  $("#subscription-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const usd = Number($("#form-sub-usd").value) || 0;
-    const krw = Math.round(usd * state.exchangeRate);
+  const subForm = $("#sub-form") || $("#subscription-form");
+  if (subForm) {
+    subForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const usdEl = $("#sub-usd") || $("#form-sub-usd");
+      const usd = usdEl ? (Number(usdEl.value) || 0) : 0;
+      const krw = Math.round(usd * state.exchangeRate);
 
-    const formData = {
-      title: $("#form-sub-title").value,
-      siteUrl: $("#form-sub-url").value,
-      expiryDate: $("#form-sub-expiry").value,
-      amountUSD: usd,
-      amountKRW: krw,
-      payDate: $("#form-sub-paydate").value,
-      groupTitle: $("#form-sub-group").value,
-      remarks: $("#form-sub-remarks").value
-    };
+      const formData = {
+        title: $("#sub-title-input") ? $("#sub-title-input").value : "",
+        siteUrl: $("#sub-url") ? $("#sub-url").value : "",
+        expiryDate: $("#sub-expiry") ? $("#sub-expiry").value : "",
+        amountUSD: usd,
+        amountKRW: krw,
+        payDate: $("#sub-paydate") ? $("#sub-paydate").value : "",
+        groupTitle: $("#sub-group-input") ? $("#sub-group-input").value : "",
+        remarks: $("#sub-remarks") ? $("#sub-remarks").value : ""
+      };
 
-    if (state.editingItem) {
-      await window.dataStore.updateSubscription(state.editingItem.id, formData);
-    } else {
-      await window.dataStore.addSubscription(formData);
-    }
+      if (state.editingItem) {
+        await window.dataStore.updateSubscription(state.editingItem.id, formData);
+      } else {
+        await window.dataStore.addSubscription(formData);
+      }
 
-    closeAllModals();
-    await renderApp();
-  });
+      closeAllModals();
+      await renderApp();
+    });
+  }
 
   // 8. 네이버 환율 계산기 입력 연동
   $("#calc-usd-input").addEventListener("input", (e) => {
@@ -895,22 +907,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     await updateGroupDatalists();
 
     state.editingItem = isCopy ? null : item;
-    $("#lecture-modal-title").textContent = isCopy ? "강의 활동 내용 복사하여 추가" : (item ? "강의 활동 내용 수정" : "새 강의 활동 추가");
+    const titleEl = $("#modal-lecture-title") || $("#lecture-modal-title");
+    if (titleEl) titleEl.textContent = isCopy ? "강의 활동 내용 복사하여 추가" : (item ? "강의 활동 내용 수정" : "새 강의 활동 추가");
+
+    const setVal = (id1, id2, val) => {
+      const el = $(id1) || $(id2);
+      if (el) el.value = val;
+    };
 
     if (item) {
-      $("#form-lec-date").value = item.date || "";
-      $("#form-lec-topic").value = isCopy ? `${item.topic} (복사본)` : (item.topic || "");
-      $("#form-lec-target").value = item.target || "";
-      $("#form-lec-location").value = item.location || "";
-      $("#form-lec-time").value = item.time || "";
-      $("#form-lec-fee").value = item.fee || "";
-      $("#form-lec-group").value = item.groupTitle || "";
-      $("#form-lec-remarks").value = item.remarks || "";
+      setVal("#lec-date", "#form-lec-date", item.date || "");
+      setVal("#lec-topic", "#form-lec-topic", isCopy ? `${item.topic} (복사본)` : (item.topic || ""));
+      setVal("#lec-target", "#form-lec-target", item.target || "");
+      setVal("#lec-location", "#form-lec-location", item.location || "");
+      setVal("#lec-time", "#form-lec-time", item.time || "");
+      setVal("#lec-fee", "#form-lec-fee", item.fee || "");
+      setVal("#lec-group", "#form-lec-group", item.groupTitle || "");
+      setVal("#lec-remarks", "#form-lec-remarks", item.remarks || "");
     } else {
-      $("#lecture-form").reset();
+      const form = $("#lecture-form");
+      if (form) form.reset();
     }
 
-    $("#modal-lecture").classList.add("active");
+    const modal = $("#modal-lecture");
+    if (modal) modal.classList.add("active");
   }
 
   async function openSubscriptionModal(item = null, isCopy = false) {
@@ -918,21 +938,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     await updateGroupDatalists();
 
     state.editingItem = isCopy ? null : item;
-    $("#sub-modal-title").textContent = isCopy ? "구독 사항 복사하여 추가" : (item ? "구독 사항 수정" : "새 구독 사항 추가");
+    const titleEl = $("#modal-sub-title") || $("#sub-modal-title");
+    if (titleEl) titleEl.textContent = isCopy ? "구독 사항 복사하여 추가" : (item ? "구독 사항 수정" : "새 구독 사항 추가");
+
+    const setVal = (id1, id2, val) => {
+      const el = $(id1) || $(id2);
+      if (el) el.value = val;
+    };
 
     if (item) {
-      $("#form-sub-title").value = isCopy ? `${item.title} (복사본)` : (item.title || "");
-      $("#form-sub-url").value = item.siteUrl || "";
-      $("#form-sub-expiry").value = item.expiryDate || "";
-      $("#form-sub-usd").value = item.amountUSD || "";
-      $("#form-sub-paydate").value = item.payDate || "";
-      $("#form-sub-group").value = item.groupTitle || "";
-      $("#form-sub-remarks").value = item.remarks || "";
+      setVal("#sub-title-input", "#form-sub-title", isCopy ? `${item.title} (복사본)` : (item.title || ""));
+      setVal("#sub-url", "#form-sub-url", item.siteUrl || "");
+      setVal("#sub-expiry", "#form-sub-expiry", item.expiryDate || "");
+      setVal("#sub-usd", "#form-sub-usd", item.amountUSD || "");
+      setVal("#sub-paydate", "#form-sub-paydate", item.payDate || "");
+      setVal("#sub-group-input", "#form-sub-group", item.groupTitle || "");
+      setVal("#sub-remarks", "#form-sub-remarks", item.remarks || "");
     } else {
-      $("#subscription-form").reset();
+      const form = $("#sub-form") || $("#subscription-form");
+      if (form) form.reset();
     }
 
-    $("#modal-subscription").classList.add("active");
+    const modal = $("#modal-subscription");
+    if (modal) modal.classList.add("active");
   }
 
   function openAuthModal() {
