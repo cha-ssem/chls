@@ -92,22 +92,16 @@ class AdminAuthService {
         );
         return {
           success: true,
-          message: `[EmailJS 발송 성공] ${email}(으)로 실제 인증번호가 발송되었습니다. 메일함을 확인해주세요.`
+          message: `${email}(으)로 인증번호가 발송되었습니다. 메일함을 확인해주세요.`
         };
       } catch (err) {
-        console.warn("[EmailJS] Send failed, falling back to demo notification:", err);
-        return {
-          success: true,
-          message: `[EmailJS 오류 발생: ${err.text || err.message || '설정 확인 필요'}]\n시뮬레이션 인증번호: [ ${this.currentOtp} ] (테스트 PIN: 123456)`
-        };
+        console.warn("[EmailJS] Send failed:", err);
+        throw new Error(`이메일 발송 실패: ${err.text || err.message || 'EmailJS 설정을 확인해주세요.'}`);
       }
     }
 
-    // 키 미설정 상태일 경우 시뮬레이션 알림
-    return {
-      success: true,
-      message: `[시뮬레이션 발송] EmailJS Key 미설정 상태입니다.\n${email} 님께 발송된 인증번호: [ ${this.currentOtp} ]\n(상단 '⚙️ EmailJS 설정' 메뉴에서 실제 Key를 입력할 수 있습니다)`
-    };
+    // 키 미설정 상태일 경우 안내 오류
+    throw new Error("EmailJS 서비스 키가 설정되지 않았습니다. 상단 '⚙️ EmailJS 설정' 메뉴에서 키를 등록해 주세요.");
   }
 
   /**
@@ -115,10 +109,12 @@ class AdminAuthService {
    * @param {string} inputOtp 
    */
   verifyOTP(inputOtp) {
-    // 테스트 핀 '123456' 또는 발송된 OTP 번호와 일치 시 성공
-    if (inputOtp === this.currentOtp || inputOtp === "123456") {
+    if (!this.currentOtp) return false;
+    const cleanInput = (inputOtp || "").trim();
+    if (cleanInput === this.currentOtp) {
       this.isAdminLoggedIn = true;
       sessionStorage.setItem("checkls_admin_logged", "true");
+      this.currentOtp = null; // 사용 완료 후 일회용 만료
       return true;
     }
     return false;

@@ -316,7 +316,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       updateAuthUI();
       renderApp();
     } else {
-      alert("❌ 인증번호가 올바르지 않습니다.\n(테스트 기본 PIN: 123456)");
+      alert("❌ 인증번호가 올바르지 않거나 만료되었습니다.\n이메일로 전송된 인증번호를 다시 확인해 주세요.");
       if (pinInput) {
         pinInput.value = "";
         pinInput.focus();
@@ -1026,7 +1026,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const emailjsStatus = window.adminAuth.isConfigured
       ? `<span class="badge-pill badge-success" style="font-size: 11px;">✉️ EmailJS 연동</span>`
-      : `<span class="badge-pill" style="font-size: 11px; color: var(--muted);" title="EmailJS 미설정 시 시뮬레이션 OTP 모드로 작동">✉️ EmailJS 미연동</span>`;
+      : `<span class="badge-pill" style="font-size: 11px; color: var(--muted);" title="EmailJS 미연동 상태 (상단 ⚙️ EmailJS 설정에서 키 등록 필요)">✉️ EmailJS 미연동</span>`;
 
     if (window.adminAuth.isAdminLoggedIn) {
       btn.textContent = "로그아웃";
