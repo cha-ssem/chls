@@ -3,6 +3,21 @@
  * Cal.com UI Design System & Business Logic
  */
 
+// 전역 모달 제어 함수 (HTML onclick 인라인 이벤트 100% 작동 보장)
+function openAuthModal() {
+  const authForm = document.querySelector("#auth-form");
+  if (authForm) authForm.reset();
+  const modalAuth = document.querySelector("#modal-auth");
+  if (modalAuth) modalAuth.classList.add("active");
+}
+
+function closeAllModals() {
+  document.querySelectorAll(".modal-backdrop").forEach(m => m.classList.remove("active"));
+}
+
+window.openAuthModal = openAuthModal;
+window.closeAllModals = closeAllModals;
+
 document.addEventListener("DOMContentLoaded", async () => {
   // 앱 상태 (State)
   const state = {
