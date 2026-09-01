@@ -1020,10 +1020,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const addLecBtn = $("#btn-add-lecture");
     const addSubBtn = $("#btn-add-subscription");
 
-    const fbStatus = window.dataStore.isFirebaseConnected
-      ? `<span class="badge-pill badge-group" style="background: #eff6ff;">🔥 Firebase DB (${escapeHtml(window.dataStore.fbProjectId)})</span>`
-      : "";
-
     const emailjsStatus = window.adminAuth.isConfigured
       ? `<span class="badge-pill badge-success" style="font-size: 11px;">✉️ EmailJS 연동</span>`
       : `<span class="badge-pill" style="font-size: 11px; color: var(--muted);" title="EmailJS 미연동 상태 (상단 ⚙️ EmailJS 설정에서 키 등록 필요)">✉️ EmailJS 미연동</span>`;
@@ -1036,7 +1032,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderApp();
         alert("로그아웃 되었습니다.");
       };
-      statusBadge.innerHTML = `${fbStatus} ${emailjsStatus} <span class="badge-pill badge-success">🔑 관리자 로그인 완료</span>`;
+      statusBadge.innerHTML = `${emailjsStatus} <span class="badge-pill badge-success">🔑 관리자 로그인 완료</span>`;
 
       if (state.currentTab === "lectures") {
         addLecBtn.classList.remove("hidden");
@@ -1048,7 +1044,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       btn.textContent = "관리자 로그인";
       btn.onclick = () => openAuthModal();
-      statusBadge.innerHTML = `${fbStatus} ${emailjsStatus} <span class="badge-pill">🔒 비로그인 (보안 가림 모드)</span>`;
+      statusBadge.innerHTML = `${emailjsStatus} <span class="badge-pill">🔒 비로그인 (보안 가림 모드)</span>`;
       addLecBtn.classList.add("hidden");
       addSubBtn.classList.add("hidden");
     }
