@@ -7,6 +7,18 @@
 window.openAuthModal = function() {
   const authForm = document.querySelector("#auth-form");
   if (authForm) authForm.reset();
+  
+  const emailInput = document.querySelector("#auth-email-input");
+  if (emailInput && window.adminAuth) {
+    emailInput.value = window.adminAuth.adminEmail || "admin@example.com";
+  }
+
+  const statusEl = document.querySelector("#auth-otp-status");
+  if (statusEl) {
+    statusEl.style.display = "none";
+    statusEl.innerHTML = "";
+  }
+
   const modalAuth = document.querySelector("#modal-auth");
   if (modalAuth) {
     modalAuth.style.display = "flex";
@@ -14,6 +26,29 @@ window.openAuthModal = function() {
     modalAuth.style.pointerEvents = "auto";
     modalAuth.style.zIndex = "99999";
     modalAuth.classList.add("active");
+    const pinInput = document.querySelector("#auth-pin-input");
+    if (pinInput) setTimeout(() => pinInput.focus(), 50);
+  }
+};
+
+window.openEmailJSModal = function() {
+  const modal = document.querySelector("#modal-emailjs-config");
+  if (modal && window.adminAuth) {
+    const pk = document.querySelector("#cfg-emailjs-publickey");
+    const sid = document.querySelector("#cfg-emailjs-serviceid");
+    const tid = document.querySelector("#cfg-emailjs-templateid");
+    const mail = document.querySelector("#cfg-emailjs-adminemail");
+
+    if (pk) pk.value = window.adminAuth.publicKey || "";
+    if (sid) sid.value = window.adminAuth.serviceId || "";
+    if (tid) tid.value = window.adminAuth.templateId || "";
+    if (mail) mail.value = window.adminAuth.adminEmail || "";
+
+    modal.style.display = "flex";
+    modal.style.opacity = "1";
+    modal.style.pointerEvents = "auto";
+    modal.style.zIndex = "99999";
+    modal.classList.add("active");
   }
 };
 
@@ -25,6 +60,18 @@ window.closeAllModals = function() {
     m.style.pointerEvents = "none";
   });
 };
+
+// 모달 바깥 배경 클릭 및 ESC 키로 모달 닫기 지원
+document.addEventListener("click", (e) => {
+  if (e.target && e.target.classList.contains("modal-backdrop")) {
+    window.closeAllModals();
+  }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    window.closeAllModals();
+  }
+});
 
 document.addEventListener("DOMContentLoaded", async () => {
   // 앱 상태 (State)
@@ -202,19 +249,93 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (rateDisp) rateDisp.textContent = state.exchangeRate.toLocaleString();
   });
 
-  // 9. 관리자 비밀번호 인증 폼 제출
+  // 9. EmailJS OTP 인증번호 전송 버튼
+  on("#btn-send-otp", "click", async () => {
+    const emailInput = $("#auth-email-input");
+    const email = emailInput ? emailInput.value.trim() : "";
+    const statusEl = $("#auth-otp-status");
+    const sendBtn = $("#btn-send-otp");
+
+    if (!email || !email.includes("@")) {
+      alert("올바른 이메일 주소를 입력해 주세요.");
+      if (emailInput) emailInput.focus();
+      return;
+    }
+
+    try {
+      if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.textContent = "⏳ 전송 중...";
+      }
+
+      if (statusEl) {
+        statusEl.style.display = "block";
+        statusEl.style.backgroundColor = "var(--surface-soft)";
+        statusEl.style.color = "var(--ink)";
+        statusEl.innerHTML = `📨 <strong>${email}</strong>(으)로 인증번호를 전송 중입니다...`;
+      }
+
+      const res = await window.adminAuth.sendAdminOTP(email);
+
+      if (statusEl) {
+        statusEl.style.display = "block";
+        statusEl.style.backgroundColor = "#ecfdf5";
+        statusEl.style.color = "#065f46";
+        statusEl.style.border = "1px solid #a7f3d0";
+        statusEl.innerHTML = `✅ ${res.message.replace(/\n/g, "<br>")}`;
+      }
+
+      const pinInput = $("#auth-pin-input");
+      if (pinInput) pinInput.focus();
+
+    } catch (err) {
+      if (statusEl) {
+        statusEl.style.display = "block";
+        statusEl.style.backgroundColor = "#fef2f2";
+        statusEl.style.color = "#991b1b";
+        statusEl.style.border = "1px solid #fecaca";
+        statusEl.innerHTML = `⚠️ 전송 실패: ${err.message || 'EmailJS 설정을 확인해주세요.'}`;
+      }
+    } finally {
+      if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "✉️ 재전송";
+      }
+    }
+  });
+
+  // 10. 관리자 OTP 인증 폼 제출
   on("#auth-form", "submit", (e) => {
     e.preventDefault();
     const pinInput = $("#auth-pin-input");
     const pin = pinInput ? pinInput.value.trim() : "";
+
     if (window.adminAuth.verifyOTP(pin)) {
-      alert("관리자 인증에 성공하였습니다!");
+      alert("🎉 관리자 인증에 성공하였습니다!");
       closeAllModals();
       updateAuthUI();
       renderApp();
     } else {
-      alert("비밀번호가 올바르지 않습니다. (기본 PIN: 123456)");
+      alert("❌ 인증번호가 올바르지 않습니다.\n(테스트 기본 PIN: 123456)");
+      if (pinInput) {
+        pinInput.value = "";
+        pinInput.focus();
+      }
     }
+  });
+
+  // 11. EmailJS 키 환경설정 폼 제출
+  on("#emailjs-config-form", "submit", (e) => {
+    e.preventDefault();
+    const pk = $("#cfg-emailjs-publickey") ? $("#cfg-emailjs-publickey").value.trim() : "";
+    const sid = $("#cfg-emailjs-serviceid") ? $("#cfg-emailjs-serviceid").value.trim() : "";
+    const tid = $("#cfg-emailjs-templateid") ? $("#cfg-emailjs-templateid").value.trim() : "";
+    const email = $("#cfg-emailjs-adminemail") ? $("#cfg-emailjs-adminemail").value.trim() : "";
+
+    window.adminAuth.saveConfig(pk, sid, tid, email);
+    alert("✅ EmailJS 서비스 키 설정이 브라우저에 안전하게 저장되었습니다!");
+    closeAllModals();
+    updateAuthUI();
   });
 
   // Initial Load (이벤트 등록 후 화면 렌더링)
@@ -903,6 +1024,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       ? `<span class="badge-pill badge-group" style="background: #eff6ff;">🔥 Firebase DB (${escapeHtml(window.dataStore.fbProjectId)})</span>`
       : "";
 
+    const emailjsStatus = window.adminAuth.isConfigured
+      ? `<span class="badge-pill badge-success" style="font-size: 11px;">✉️ EmailJS 연동</span>`
+      : `<span class="badge-pill" style="font-size: 11px; color: var(--muted);" title="EmailJS 미설정 시 시뮬레이션 OTP 모드로 작동">✉️ EmailJS 미연동</span>`;
+
     if (window.adminAuth.isAdminLoggedIn) {
       btn.textContent = "로그아웃";
       btn.onclick = () => {
@@ -911,7 +1036,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderApp();
         alert("로그아웃 되었습니다.");
       };
-      statusBadge.innerHTML = `${fbStatus} <span class="badge-pill badge-success">🔑 관리자 로그인 완료</span>`;
+      statusBadge.innerHTML = `${fbStatus} ${emailjsStatus} <span class="badge-pill badge-success">🔑 관리자 로그인 완료</span>`;
 
       if (state.currentTab === "lectures") {
         addLecBtn.classList.remove("hidden");
@@ -923,7 +1048,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       btn.textContent = "관리자 로그인";
       btn.onclick = () => openAuthModal();
-      statusBadge.innerHTML = `${fbStatus} <span class="badge-pill">🔒 비로그인 (보안 가림 모드)</span>`;
+      statusBadge.innerHTML = `${fbStatus} ${emailjsStatus} <span class="badge-pill">🔒 비로그인 (보안 가림 모드)</span>`;
       addLecBtn.classList.add("hidden");
       addSubBtn.classList.add("hidden");
     }

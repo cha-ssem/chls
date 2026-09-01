@@ -34,6 +34,7 @@
 
       <!-- Right Side Actions & Status -->
       <div class="nav-actions">
+        <button class="btn btn-secondary btn-sm" id="btn-open-emailjs" onclick="openEmailJSModal()" title="EmailJS 인증 서비스 설정">⚙️ EmailJS 설정</button>
         <div id="admin-status-badge"></div>
         <button class="btn btn-secondary btn-sm" id="btn-admin-login" onclick="openAuthModal()">관리자 로그인</button>
       </div>
@@ -387,6 +388,12 @@
           </div>
           <div class="form-group">
             <label>결제 금액 ($ USD) *</label>
+            <input type="number" step="any" class="text-input" id="sub-usd" placeholder="예: 20" required>
+          </div>
+          <div class="form-group">
+            <label>만료일자 (D-Day)</label>
+            <input type="date" class="text-input" id="sub-expiry">
+          </div>
           <div class="form-group">
             <label>결제일자</label>
             <input type="date" class="text-input" id="sub-paydate">
@@ -404,24 +411,86 @@
     </div>
   </div>
 
-  <!-- 3. 관리자 로그인 모달 (간편 비밀번호 인증) -->
+  <!-- 3. 관리자 로그인 모달 (EmailJS OTP 이메일 인증) -->
   <div class="modal-backdrop" id="modal-auth">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>🔒 관리자 비밀번호 인증</h3>
+        <h3>🔒 관리자 이메일 인증 로그인</h3>
         <button class="close-btn close-modal-btn">✕</button>
       </div>
       <form id="auth-form">
-        <p class="muted" style="margin-bottom: 16px; font-size: 13px; line-height: 1.6;">
-          관리자 권한을 활성화하려면 비밀번호를 입력하세요. (기본 PIN: <code>123456</code>)
+        <p class="muted" style="margin-bottom: 16px; font-size: 13.5px; line-height: 1.5;">
+          보안을 위해 관리자 이메일로 발송되는 <strong>6자리 일회용 인증번호(OTP)</strong>를 입력하여 로그인하세요.
         </p>
-        <div class="form-group" style="margin-bottom: 20px;">
-          <label>비밀번호 (PIN)</label>
-          <input type="password" class="text-input" id="auth-pin-input" placeholder="비밀번호 6자리 입력 (기본: 123456)" required>
+
+        <!-- 이메일 입력 및 전송 버튼 -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label>관리자 이메일 주소</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="email" class="text-input" id="auth-email-input" placeholder="admin@example.com" style="flex: 1;" required>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-send-otp" style="height: 38px; white-space: nowrap;">✉️ 인증번호 전송</button>
+          </div>
         </div>
+
+        <!-- 전송 결과 알림 메시지 영역 -->
+        <div id="auth-otp-status" style="display: none; padding: 10px 14px; border-radius: var(--rounded-md); font-size: 12.5px; margin-bottom: 14px; line-height: 1.4;"></div>
+
+        <!-- 인증번호 입력 -->
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label>인증번호 (OTP 6자리)</label>
+          <input type="text" class="text-input" id="auth-pin-input" placeholder="이메일로 전송된 6자리 번호 입력 (기본 테스트: 123456)" maxlength="6" required>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="openEmailJSModal()" style="font-size: 12px; border: none; background: transparent; color: var(--muted); text-decoration: underline; padding: 0;">⚙️ EmailJS 키 설정</button>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-secondary close-modal-btn">취소</button>
+            <button type="submit" class="btn btn-primary" id="btn-submit-auth">관리자 로그인</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. EmailJS 키 환경설정 모달 -->
+  <div class="modal-backdrop" id="modal-emailjs-config">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚙️ EmailJS 서비스 키 설정</h3>
+        <button class="close-btn close-modal-btn">✕</button>
+      </div>
+      <form id="emailjs-config-form">
+        <p class="muted" style="margin-bottom: 16px; font-size: 13px; line-height: 1.5;">
+          EmailJS(<a href="https://dashboard.emailjs.com" target="_blank" style="color: var(--brand-accent);">emailjs.com</a>)에서 발급받은 계정 정보를 등록하면 실제 이메일로 인증번호가 발송됩니다.
+        </p>
+
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>Public Key (User ID) *</label>
+            <input type="text" class="text-input" id="cfg-emailjs-publickey" placeholder="예: user_xxxxxxxxxxxxxx 또는 공개키" required>
+          </div>
+          <div class="form-group">
+            <label>Service ID *</label>
+            <input type="text" class="text-input" id="cfg-emailjs-serviceid" placeholder="예: service_xxxxxxx" required>
+          </div>
+          <div class="form-group">
+            <label>Template ID *</label>
+            <input type="text" class="text-input" id="cfg-emailjs-templateid" placeholder="예: template_xxxxxxx" required>
+          </div>
+          <div class="form-group full-width">
+            <label>기본 관리자 수신 이메일</label>
+            <input type="email" class="text-input" id="cfg-emailjs-adminemail" placeholder="admin@example.com">
+          </div>
+        </div>
+
+        <div style="background-color: var(--surface-soft); padding: 12px; border-radius: var(--rounded-md); font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">
+          💡 <strong>EmailJS 템플릿 변수 안내:</strong><br>
+          템플릿 본문에 <code>{{auth_code}}</code> 또는 <code>{{otp_code}}</code> 변수를 넣으시면 6자리 인증번호가 자동으로 치환되어 수신자에게 전송됩니다.
+        </div>
+
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
           <button type="button" class="btn btn-secondary close-modal-btn">취소</button>
-          <button type="submit" class="btn btn-primary">관리자 로그인</button>
+          <button type="submit" class="btn btn-primary">설정 저장하기</button>
         </div>
       </form>
     </div>

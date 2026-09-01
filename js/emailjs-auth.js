@@ -17,20 +17,18 @@ class AdminAuthService {
     this.isAdminLoggedIn = false;
     this.currentOtp = null;
 
-    // EmailJS 키 설정값 (코드 내 기본값 우선 사용)
+    // EmailJS 키 설정값 (LocalStorage 또는 기본값)
     this.publicKey = localStorage.getItem("checkls_emailjs_public_key") || DEFAULT_EMAILJS_CONFIG.publicKey;
     this.serviceId = localStorage.getItem("checkls_emailjs_service_id") || DEFAULT_EMAILJS_CONFIG.serviceId;
     this.templateId = localStorage.getItem("checkls_emailjs_template_id") || DEFAULT_EMAILJS_CONFIG.templateId;
     this.adminEmail = localStorage.getItem("checkls_admin_email") || DEFAULT_EMAILJS_CONFIG.adminEmail;
 
-    // 구형 EmailJS 스토리지 잔재 데이터 자동 정리
-    localStorage.removeItem("checkls_emailjs_public_key");
-    localStorage.removeItem("checkls_emailjs_service_id");
-    localStorage.removeItem("checkls_emailjs_template_id");
-    localStorage.removeItem("checkls_admin_email");
-
     this.initSession();
     this.initEmailJS();
+  }
+
+  get isConfigured() {
+    return Boolean(this.publicKey && this.serviceId && this.templateId);
   }
 
   initSession() {
