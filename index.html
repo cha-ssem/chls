@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>강의 활동 및 구독료 관리 대시보드</title>
+  <!-- Google Fonts & Pretendard Premium Korean Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <!-- Stylesheet (Cal.com Design System) -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation (Cal.com SaaS Header) -->
+  <header class="top-nav">
+    <div class="top-nav-container">
+      <a href="#" class="brand-logo">
+        <span>Cal.com CheckLS</span>
+        <span class="dot"></span>
+      </a>
+
+      <!-- Signature Nav Pill Group (Tabs) -->
+      <div class="nav-pill-group">
+        <button class="category-tab active" data-tab="lectures">
+          <span>🎓 강의 활동 내용</span>
+        </button>
+        <button class="category-tab" data-tab="subscriptions">
+          <span>💳 구독 사항</span>
+        </button>
+      </div>
+
+      <!-- Right Side Actions & Status -->
+      <div class="nav-actions">
+        <div id="admin-status-badge"></div>
+        <button class="btn btn-secondary btn-sm" id="btn-admin-login">관리자 로그인</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container (1380px Cal.com SaaS Width) -->
+  <main class="container">
+    <!-- Page Header & Title Area -->
+    <div class="page-header">
+      <div class="header-title-area">
+        <h1>강의 활동 및 구독료 관리</h1>
+        <p>강의 내역 및 구독 서비스 지출 현황을 효율적으로 정리하고 한눈에 모아보세요.</p>
+      </div>
+      <div>
+        <button class="btn btn-primary" id="btn-add-lecture">+ 새 강의 등록</button>
+        <button class="btn btn-primary hidden" id="btn-add-subscription">+ 새 구독 등록</button>
+      </div>
+    </div>
+    <!-- Dashboard Summary Grid (Cal.com SaaS Card Style) -->
+    <section class="dashboard-grid">
+      <div class="summary-card accent-card">
+        <div class="card-label">
+          <span id="stat-net-title">2026년 09월 강의 수입</span>
+          <span class="badge-pill" style="background: rgba(255,255,255,0.2); color: #fff; border:none;">This Month</span>
+        </div>
+        <div class="card-value" id="stat-net-income">0원</div>
+        <div class="card-subtext" id="stat-net-subtext">2026년 09월 완료: 0원</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-label">
+          <span>총 강의 수입</span>
+          <span class="badge-pill">수입</span>
+        </div>
+        <div class="card-value" id="stat-total-fee">0원</div>
+        <div class="card-subtext" id="stat-completed-fee">완료: 0원</div>
+      </div>
+
+      <div class="summary-card accent-card">
+        <div class="card-label">
+          <span id="stat-sub-cost-title">2026년 09월 구독 지출</span>
+          <span class="badge-pill" style="background: rgba(255,255,255,0.2); color: #fff; border:none;">This Month</span>
+        </div>
+        <div class="card-value" id="stat-sub-cost">0원</div>
+        <div class="card-subtext" id="stat-sub-count">2026년 09월 결제: 0원</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-label">
+          <span>구독 서비스</span>
+          <span class="badge-pill badge-warning">D-Day</span>
+        </div>
+        <div class="card-value" style="font-size: 14px; font-weight: normal; font-family: var(--font-body);" id="stat-sub-dday-list">
+          <!-- JS 동적 렌더링 -->
+        </div>
+        <div class="card-subtext">그룹별 임박한 만료기간</div>
+      </div>
+    </section>
+
+    <!-- Controls Bar (Filter, Search, View Switcher) -->
+    <!-- 강의 컨트롤바 -->
+    <div class="controls-bar" id="lecture-controls">
+      <div class="filter-group">
+        <select class="select-input" id="lecture-month-filter">
+          <option value="all">📅 전체 월 보기</option>
+          <option value="2026-09">2026년 9월</option>
+          <option value="2026-08">2026년 8월</option>
+          <option value="2026-07">2026년 7월</option>
+          <option value="2026-06">2026년 6월</option>
+        </select>
+
+        <select class="select-input" id="lecture-status-filter">
+          <option value="all">전체 표 보기</option>
+          <option value="pending">⏳ 진행 중 목록만 보기</option>
+          <option value="completed">✓ 처리 완료 목록만 보기</option>
+        </select>
+
+        <div class="search-input-wrap">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <input type="text" class="text-input" id="lecture-search-input" placeholder="강의 주제, 대상자, 장소 검색...">
+        </div>
+      </div>
+
+      <div class="view-switcher">
+        <button class="view-btn active" data-view="list">
+          <span>☰ 리스트 보기</span>
+        </button>
+        <button class="view-btn" data-view="monthly">
+          <span>📆 월별 보기</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 구독 컨트롤바 -->
+    <div class="controls-bar hidden" id="subscription-controls">
+      <div class="filter-group">
+        <select class="select-input" id="sub-month-filter">
+          <option value="all">📅 전체 월 보기</option>
+          <option value="2026-09">2026년 9월</option>
+          <option value="2026-08">2026년 8월</option>
+          <option value="2026-07">2026년 7월</option>
+          <option value="2026-06">2026년 6월</option>
+        </select>
+
+        <select class="select-input" id="sub-status-filter">
+          <option value="all">전체 표 보기</option>
+          <option value="pending">⏳ 진행 중 목록만 보기</option>
+          <option value="completed">✓ 처리 완료 목록만 보기</option>
+        </select>
+
+        <div class="search-input-wrap">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <input type="text" class="text-input" id="sub-search-input" placeholder="구독 서비스명 검색...">
+        </div>
+      </div>
+
+      <div class="view-switcher">
+        <button class="view-btn active" data-view="list">
+          <span>☰ 리스트 보기</span>
+        </button>
+        <button class="view-btn" data-view="monthly">
+          <span>📆 월별 보기</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Content Sections -->
+    <!-- 1. 강의 활동 관리 섹션 -->
+    <section class="tab-content" id="tab-lectures">
+      <!-- List View -->
+      <div id="lecture-list-view">
+        <!-- ⏳ 진행 중인 강의 목록 표 -->
+        <div class="table-card" id="lec-pending-section" style="margin-bottom: var(--spacing-xl);">
+          <div class="table-header">
+            <h3>⏳ 진행 중인 강의 목록 <span class="header-count-badge" id="lec-pending-count">0건</span></h3>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 80px;" class="text-center">상태 변경</th>
+                  <th style="width: 110px;">날짜</th>
+                  <th>강의 주제 및 그룹</th>
+                  <th>대상자</th>
+                  <th>강의 장소</th>
+                  <th style="width: 100px;">시간</th>
+                  <th style="width: 120px;" class="text-right">강의료(원)</th>
+                  <th style="width: 90px;" class="text-center">완료여부</th>
+                  <th style="width: 180px;">관리</th>
+                </tr>
+              </thead>
+              <tbody id="lecture-pending-tbody">
+                <!-- JS 동적 렌더링 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ✓ 처리 완료된 강의 목록 표 -->
+        <div class="table-card" id="lec-completed-section">
+          <div class="table-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+            <h3 style="color: var(--muted); font-size: 15px;">✓ 처리 완료된 강의 목록 <span class="header-count-badge" id="lec-completed-count" style="background: var(--surface-subtle); color: var(--muted);">0건</span></h3>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 80px;" class="text-center">상태 복원</th>
+                  <th style="width: 110px;">날짜</th>
+                  <th>강의 주제 및 그룹</th>
+                  <th>대상자</th>
+                  <th>강의 장소</th>
+                  <th style="width: 100px;">시간</th>
+                  <th style="width: 120px;" class="text-right">강의료(원)</th>
+                  <th style="width: 90px;" class="text-center">완료여부</th>
+                  <th style="width: 180px;">관리</th>
+                </tr>
+              </thead>
+              <tbody id="lecture-completed-tbody">
+                <!-- JS 동적 렌더링 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly View (Grid Card Layout) -->
+      <div class="monthly-grid hidden" id="lecture-monthly-view">
+        <!-- JS 동적 렌더링 -->
+      </div>
+    </section>
+
+    <!-- 2. 구독 사항 관리 섹션 -->
+    <section class="tab-content hidden" id="tab-subscriptions">
+      <!-- Naver Exchange Calculator Banner -->
+      <div class="exchange-banner">
+        <div class="exchange-info">
+          <span>🔤 실시간 달러 환율 계산기 (네이버 매매기준율 기준)</span>
+          <span class="exchange-rate-tag">현재 적용 환율: <strong>1 USD = <span id="current-exchange-rate">1,380</span> KRW</strong></span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input type="number" class="text-input" id="calc-usd-input" placeholder="달러($) 입력" style="width: 120px; height: 34px;">
+          <span style="font-weight: bold; color: var(--muted);">=</span>
+          <span id="calc-krw-result" style="font-weight: bold; color: var(--primary); min-width: 100px;">0 원</span>
+          <a href="https://search.naver.com/search.naver?query=환율계산기" target="_blank" class="btn btn-secondary btn-sm" style="margin-left: 8px;">네이버 환율계산기 ↗</a>
+        </div>
+      </div>
+
+      <!-- List View -->
+      <div id="sub-list-view">
+        <!-- ⏳ 진행 중인 구독 목록 표 -->
+        <div class="table-card" id="sub-pending-section" style="margin-bottom: var(--spacing-xl);">
+          <div class="table-header">
+            <h3>⏳ 진행 중인 구독 목록 <span class="header-count-badge" id="sub-pending-count">0건</span></h3>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 80px;" class="text-center">상태 변경</th>
+                  <th>구독 서비스 및 묶음 그룹</th>
+                  <th style="width: 140px;">만료기간 (D-Day)</th>
+                  <th style="width: 120px;" class="text-right">결제금액($)</th>
+                  <th style="width: 130px;" class="text-right">원화추정액(₩)</th>
+                  <th style="width: 110px;">결제일</th>
+                  <th style="width: 90px;" class="text-center">결제상태</th>
+                  <th style="width: 180px;">관리</th>
+                </tr>
+              </thead>
+              <tbody id="sub-pending-tbody">
+                <!-- JS 동적 렌더링 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ✓ 처리 완료된 구독 목록 표 -->
+        <div class="table-card" id="sub-completed-section">
+          <div class="table-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+            <h3 style="color: var(--muted); font-size: 15px;">✓ 처리 완료된 구독 목록 <span class="header-count-badge" id="sub-completed-count" style="background: var(--surface-subtle); color: var(--muted);">0건</span></h3>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 80px;" class="text-center">상태 복원</th>
+                  <th>구독 서비스 및 묶음 그룹</th>
+                  <th style="width: 140px;">만료기간 (D-Day)</th>
+                  <th style="width: 120px;" class="text-right">결제금액($)</th>
+                  <th style="width: 130px;" class="text-right">원화추정액(₩)</th>
+                  <th style="width: 110px;">결제일</th>
+                  <th style="width: 90px;" class="text-center">결제상태</th>
+                  <th style="width: 180px;">관리</th>
+                </tr>
+              </thead>
+              <tbody id="sub-completed-tbody">
+                <!-- JS 동적 렌더링 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly View -->
+      <div class="monthly-grid hidden" id="sub-monthly-view">
+        <!-- JS 동적 렌더링 -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Modals -->
+  <!-- 1. 강의 등록/수정 모달 -->
+  <div class="modal-backdrop" id="modal-lecture">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-lecture-title">📌 강의 활동 내용 등록</h3>
+        <button class="close-btn close-modal-btn">✕</button>
+      </div>
+      <form id="lecture-form">
+        <input type="hidden" id="lec-id">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>날짜 *</label>
+            <input type="date" class="text-input" id="lec-date" required>
+          </div>
+          <div class="form-group">
+            <label>강의료 (원) *</label>
+            <input type="number" class="text-input" id="lec-fee" placeholder="예: 500000" required>
+          </div>
+          <div class="form-group full-width">
+            <label>회차 묶음 그룹명 (선택)</label>
+            <input type="text" class="text-input" id="lec-group" list="lecture-group-list" placeholder="기존 그룹 선택 또는 신규 그룹명 직접 입력">
+            <datalist id="lecture-group-list">
+              <!-- JS 동적 바인딩 -->
+            </datalist>
+          </div>
+          <div class="form-group full-width">
+            <label>강의 주제 *</label>
+            <input type="text" class="text-input" id="lec-topic" placeholder="강의 주제를 입력하세요" required>
+          </div>
+          <div class="form-group">
+            <label>대상자</label>
+            <input type="text" class="text-input" id="lec-target" placeholder="예: 임직원, 대학생">
+          </div>
+          <div class="form-group">
+            <label>강의 장소</label>
+            <input type="text" class="text-input" id="lec-location" placeholder="예: 본사 3층 대회의실 / Zoom">
+          </div>
+          <div class="form-group">
+            <label>시간 (분/시간)</label>
+            <input type="text" class="text-input" id="lec-time" placeholder="예: 2시간 (14:00~16:00)">
+          </div>
+          <div class="form-group full-width">
+            <label>비고 및 메모</label>
+            <textarea class="text-input" id="lec-remarks" rows="2" placeholder="기타 전달사항이나 참고 메모"></textarea>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary close-modal-btn">취소</button>
+          <button type="submit" class="btn btn-primary">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. 구독 사항 등록/수정 모달 -->
+  <div class="modal-backdrop" id="modal-subscription">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-sub-title">💳 구독 사항 등록</h3>
+        <button class="close-btn close-modal-btn">✕</button>
+      </div>
+      <form id="sub-form">
+        <input type="hidden" id="sub-id">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>구독 서비스명 *</label>
+            <input type="text" class="text-input" id="sub-title-input" placeholder="예: ChatGPT Plus, Midjourney" required>
+          </div>
+          <div class="form-group full-width">
+            <label>동일 구독 묶음 그룹명 (선택)</label>
+            <input type="text" class="text-input" id="sub-group-input" list="sub-group-list" placeholder="기존 그룹 선택 또는 신규 그룹명 직접 입력">
+            <datalist id="sub-group-list">
+              <!-- JS 동적 바인딩 -->
+            </datalist>
+          </div>
+          <div class="form-group full-width">
+            <label>사이트 주소 (URL)</label>
+            <input type="url" class="text-input" id="sub-url" placeholder="https://chatgpt.com">
+          </div>
+          <div class="form-group">
+            <label>결제 금액 ($ USD) *</label>
+          <div class="form-group">
+            <label>결제일자</label>
+            <input type="date" class="text-input" id="sub-paydate">
+          </div>
+          <div class="form-group full-width">
+            <label>비고 및 결제 수단 메모</label>
+            <textarea class="text-input" id="sub-remarks" rows="2" placeholder="결제 카드 정보나 요금제 참고 메모"></textarea>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary close-modal-btn">취소</button>
+          <button type="submit" class="btn btn-primary">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. 관리자 로그인 모달 (간편 비밀번호 인증) -->
+  <div class="modal-backdrop" id="modal-auth">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🔒 관리자 비밀번호 인증</h3>
+        <button class="close-btn close-modal-btn">✕</button>
+      </div>
+      <form id="auth-form">
+        <p class="muted" style="margin-bottom: 16px; font-size: 13px; line-height: 1.6;">
+          관리자 권한을 활성화하려면 비밀번호를 입력하세요. (기본 PIN: <code>123456</code>)
+        </p>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label>비밀번호 (PIN)</label>
+          <input type="password" class="text-input" id="auth-pin-input" placeholder="비밀번호 6자리 입력 (기본: 123456)" required>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button type="button" class="btn btn-secondary close-modal-btn">취소</button>
+          <button type="submit" class="btn btn-primary">관리자 로그인</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer (Cal.com Dark Surface Signature) -->
+  <footer class="footer-dark">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <span>Cal.com CheckLS</span>
+        <span class="dot"></span>
+      </div>
+      <div class="footer-links">
+        <span>© 2026 강의 활동 및 구독료 관리 시스템</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Firebase Official SDK (v9 Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- EmailJS Official SDK CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <!-- Scripts -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/emailjs-auth.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
