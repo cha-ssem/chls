@@ -1021,8 +1021,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const addSubBtn = $("#btn-add-subscription");
 
     const emailjsStatus = window.adminAuth.isConfigured
-      ? `<span class="badge-pill badge-success" style="font-size: 11px;">✉️ EmailJS 연동</span>`
-      : `<span class="badge-pill" style="font-size: 11px; color: var(--muted);" title="EmailJS 미연동 상태 (상단 ⚙️ EmailJS 설정에서 키 등록 필요)">✉️ EmailJS 미연동</span>`;
+      ? `<span class="badge-pill badge-success">✉️ EmailJS 연동</span>`
+      : `<span class="badge-pill" style="color: var(--muted);" title="EmailJS 미연동 상태 (상단 ⚙️ EmailJS 설정에서 키 등록 필요)">✉️ EmailJS 미연동</span>`;
 
     if (window.adminAuth.isAdminLoggedIn) {
       btn.textContent = "로그아웃";

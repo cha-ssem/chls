@@ -142,6 +142,12 @@ p { font-size: 14px; color: var(--body); }
   gap: var(--spacing-md);
 }
 
+#admin-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* Signature Nav Pill Group */
 .nav-pill-group {
   background-color: var(--surface-soft);
