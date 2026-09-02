@@ -588,10 +588,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="text-center">${completeBtn}</td>
           <td>${item.date || "-"}</td>
           <td class="topic-cell">
-            <div class="table-topic-inline">
-              <strong>${escapeHtml(item.topic)}</strong>
-              ${groupTag}
-            </div>
+            <div class="topic-title"><strong>${escapeHtml(item.topic)}</strong></div>
+            ${groupTag ? `<div class="topic-group-wrap" style="margin-top: 4px;">${groupTag}</div>` : ""}
           </td>
           <td class="cell-ellipsis" style="max-width: 80px;" title="${escapeHtml(item.target || '')}">${escapeHtml(item.target || "-")}</td>
           <td class="cell-ellipsis" style="max-width: 90px;" title="${escapeHtml(item.referrer || '')}">${escapeHtml(item.referrer || "-")}</td>
@@ -842,10 +840,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         <tr class="${item.completed ? 'completed-row' : ''}">
           <td class="text-center">${completeBtn}</td>
           <td>
-            <div class="table-topic-inline">
-              ${titleDisplay}
-              ${groupTag}
-            </div>
+            <div class="topic-title">${titleDisplay}</div>
+            ${groupTag ? `<div class="topic-group-wrap" style="margin-top: 4px;">${groupTag}</div>` : ""}
           </td>
           <td>${item.expiryDate || "-"} ${dDayBadge}</td>
           <td class="text-right">$${(item.amountUSD || 0).toLocaleString()}</td>

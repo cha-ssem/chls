@@ -584,20 +584,22 @@ p { font-size: 14px; color: var(--body); }
   line-height: 1.45;
 }
 
-.table-topic-inline {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: nowrap;
-}
-
-.table-topic-inline strong {
+.topic-title {
+  font-size: 13.5px;
+  line-height: 1.4;
   word-break: keep-all;
 }
 
-.table-topic-inline .badge-group {
-  flex-shrink: 0;
+.topic-group-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.topic-group-wrap .badge-group {
   white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cell-ellipsis {
