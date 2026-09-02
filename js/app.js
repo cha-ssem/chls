@@ -184,6 +184,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       date: $("#lec-date") ? $("#lec-date").value : "",
       topic: $("#lec-topic") ? $("#lec-topic").value : "",
       target: $("#lec-target") ? $("#lec-target").value : "",
+      referrer: $("#lec-referrer") ? $("#lec-referrer").value.trim() : "",
       location: $("#lec-location") ? $("#lec-location").value : "",
       time: $("#lec-time") ? $("#lec-time").value : "",
       fee: $("#lec-fee") ? (Number($("#lec-fee").value) || 0) : 0,
@@ -502,6 +503,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       lectures = lectures.filter(l =>
         (l.topic && l.topic.toLowerCase().includes(state.lectureSearchQuery)) ||
         (l.target && l.target.toLowerCase().includes(state.lectureSearchQuery)) ||
+        (l.referrer && l.referrer.toLowerCase().includes(state.lectureSearchQuery)) ||
         (l.location && l.location.toLowerCase().includes(state.lectureSearchQuery)) ||
         (l.groupTitle && l.groupTitle.toLowerCase().includes(state.lectureSearchQuery))
       );
@@ -565,7 +567,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   function generateLectureRowsHTML(items, isCompletedTable) {
     if (items.length === 0) {
       const msg = isCompletedTable ? "처리 완료된 강의 내역이 없습니다." : "진행 중인 강의 내역이 없습니다.";
-      return `<tr><td colspan="9" class="text-center muted" style="padding: 24px;">${msg}</td></tr>`;
+      return `<tr><td colspan="10" class="text-center muted" style="padding: 24px;">${msg}</td></tr>`;
     }
 
     return items.map(item => {
@@ -590,12 +592,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             ${groupTag ? `<div style="margin-top: 4px;">${groupTag}</div>` : ""}
           </td>
           <td>${escapeHtml(item.target || "-")}</td>
+          <td>${escapeHtml(item.referrer || "-")}</td>
           <td>${escapeHtml(item.location || "-")}</td>
           <td>${escapeHtml(item.time || "-")}</td>
           <td class="text-right"><strong>${(item.fee || 0).toLocaleString()}원</strong></td>
           <td class="text-center">${statusBadge}</td>
-          <td>
-            <div style="display: flex; gap: 6px; align-items: center;">
+          <td class="text-center">
+            <div style="display: flex; gap: 6px; align-items: center; justify-content: center;">
               <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="copy-lecture" title="강의 복사하여 추가">📋 복사</button>
               <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="edit-lecture">수정</button>
               <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="delete-lecture" style="color: var(--error);">삭제</button>
@@ -702,6 +705,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               </div>
               <div class="month-item-meta">
                 <span>📆 ${l.date}</span>
+                ${l.referrer ? `<span>👤 ${escapeHtml(l.referrer)}</span>` : ""}
                 <span>📍 ${escapeHtml(l.location || "장소 미정")}</span>
                 <span>💰 ${(l.fee || 0).toLocaleString()}원</span>
               </div>
@@ -970,7 +974,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   function getAdminRequiredLockHTML(title) {
     return `
       <tr>
-        <td colspan="9" class="text-center" style="padding: 48px 24px; background-color: var(--surface-soft);">
+        <td colspan="12" class="text-center" style="padding: 48px 24px; background-color: var(--surface-soft);">
           <div style="max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px;">
             <div style="font-size: 36px; line-height: 1;">🔒</div>
             <h4 style="font-size: 16px; font-weight: 600; color: var(--ink); margin: 0;">관리자 전용 데이터 보안</h4>
@@ -1085,6 +1089,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       setVal("#lec-date", "#form-lec-date", item.date || "");
       setVal("#lec-topic", "#form-lec-topic", isCopy ? `${item.topic} (복사본)` : (item.topic || ""));
       setVal("#lec-target", "#form-lec-target", item.target || "");
+      setVal("#lec-referrer", "#form-lec-referrer", item.referrer || "");
       setVal("#lec-location", "#form-lec-location", item.location || "");
       setVal("#lec-time", "#form-lec-time", item.time || "");
       setVal("#lec-fee", "#form-lec-fee", item.fee || "");

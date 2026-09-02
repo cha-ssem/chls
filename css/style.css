@@ -80,6 +80,7 @@ body {
   color: var(--body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 /* Typography Classes */
@@ -239,6 +240,7 @@ p { font-size: 14px; color: var(--body); }
 
 /* Main Container & Layout (Cal.com SaaS Balanced Layout) */
 .container {
+  width: 100%;
   max-width: 1380px;
   margin: 0 auto;
   padding: var(--spacing-xl) var(--spacing-lg);
@@ -487,14 +489,64 @@ p { font-size: 14px; color: var(--body); }
   border-color: #bfdbfe;
 }
 
-/* Data Table Styling (Cal.com SaaS Clean Wide Table) */
-.table-container {
+/* Data Table & Card Styling (Cal.com SaaS Clean Wide Table) */
+.table-card, .table-container {
   background-color: var(--canvas);
   border: 1px solid var(--hairline);
   border-radius: var(--rounded-lg);
-  overflow-x: auto;
   box-shadow: var(--shadow-subtle);
   margin-bottom: var(--spacing-xl);
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.table-header {
+  padding: 14px 18px;
+  background-color: var(--surface-soft);
+  border-bottom: 1px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.table-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.header-count-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--rounded-pill);
+  background-color: var(--surface-strong);
+  color: var(--ink);
+}
+
+.table-responsive {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom Smooth Thin Scrollbar for table-responsive */
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+.table-responsive::-webkit-scrollbar-track {
+  background: var(--surface-soft);
+}
+.table-responsive::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border-radius: var(--rounded-pill);
+}
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
 }
 
 .data-table {
@@ -502,11 +554,11 @@ p { font-size: 14px; color: var(--body); }
   border-collapse: collapse;
   text-align: left;
   font-size: 13.5px;
-  min-width: 1100px;
+  min-width: 980px;
 }
 
 .data-table th {
-  background-color: var(--surface-soft);
+  background-color: var(--surface-card);
   padding: 12px 14px;
   font-weight: 600;
   color: var(--ink);
@@ -522,6 +574,14 @@ p { font-size: 14px; color: var(--body); }
   color: var(--body);
   vertical-align: middle;
   white-space: nowrap;
+}
+
+.data-table td.topic-cell {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  min-width: 180px;
+  line-height: 1.45;
 }
 
 .data-table tbody tr:last-child td {
