@@ -588,13 +588,15 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="text-center">${completeBtn}</td>
           <td>${item.date || "-"}</td>
           <td class="topic-cell">
-            <strong>${escapeHtml(item.topic)}</strong>
-            ${groupTag ? `<div style="margin-top: 4px;">${groupTag}</div>` : ""}
+            <div class="table-topic-inline">
+              <strong>${escapeHtml(item.topic)}</strong>
+              ${groupTag}
+            </div>
           </td>
-          <td>${escapeHtml(item.target || "-")}</td>
-          <td>${escapeHtml(item.referrer || "-")}</td>
-          <td>${escapeHtml(item.location || "-")}</td>
-          <td>${escapeHtml(item.time || "-")}</td>
+          <td class="cell-ellipsis" style="max-width: 80px;" title="${escapeHtml(item.target || '')}">${escapeHtml(item.target || "-")}</td>
+          <td class="cell-ellipsis" style="max-width: 90px;" title="${escapeHtml(item.referrer || '')}">${escapeHtml(item.referrer || "-")}</td>
+          <td class="cell-ellipsis" style="max-width: 100px;" title="${escapeHtml(item.location || '')}">${escapeHtml(item.location || "-")}</td>
+          <td class="cell-ellipsis" style="max-width: 75px;" title="${escapeHtml(item.time || '')}">${escapeHtml(item.time || "-")}</td>
           <td class="text-right"><strong>${(item.fee || 0).toLocaleString()}원</strong></td>
           <td class="text-center">${statusBadge}</td>
           <td class="text-center">
@@ -840,8 +842,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         <tr class="${item.completed ? 'completed-row' : ''}">
           <td class="text-center">${completeBtn}</td>
           <td>
-            ${titleDisplay}
-            ${groupTag ? `<div style="margin-top: 4px;">${groupTag}</div>` : ""}
+            <div class="table-topic-inline">
+              ${titleDisplay}
+              ${groupTag}
+            </div>
           </td>
           <td>${item.expiryDate || "-"} ${dDayBadge}</td>
           <td class="text-right">$${(item.amountUSD || 0).toLocaleString()}</td>

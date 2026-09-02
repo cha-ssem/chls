@@ -584,6 +584,28 @@ p { font-size: 14px; color: var(--body); }
   line-height: 1.45;
 }
 
+.table-topic-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.table-topic-inline strong {
+  word-break: keep-all;
+}
+
+.table-topic-inline .badge-group {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.cell-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .data-table tbody tr:last-child td {
   border-bottom: none;
 }
