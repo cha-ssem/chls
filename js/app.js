@@ -145,6 +145,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   on("#lecture-month-filter", "change", (e) => {
     state.lectureFilterMonth = e.target.value;
     renderLectures();
+    renderDashboard();
   });
   on("#lecture-status-filter", "change", (e) => {
     state.lectureFilterStatus = e.target.value;
@@ -159,6 +160,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   on("#sub-month-filter", "change", (e) => {
     state.subFilterMonth = e.target.value;
     renderSubscriptions();
+    renderDashboard();
   });
   on("#sub-status-filter", "change", (e) => {
     state.subFilterStatus = e.target.value;
@@ -385,10 +387,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     const currentYearMonth = now.toISOString().substring(0, 7);
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    const formattedMonthStr = `${year}년 ${month}월`;
+    const defaultMonthStr = `${year}년 ${month}월`;
+
+    // 1. 강의 월 필터 상태에 따른 대상 년월 결정
+    const isLecMonthFiltered = Boolean(state.lectureFilterMonth && state.lectureFilterMonth !== "all");
+    let targetLecYM = currentYearMonth;
+    let targetLecMonthStr = defaultMonthStr;
+    if (isLecMonthFiltered) {
+      targetLecYM = state.lectureFilterMonth;
+      const [ly, lm] = targetLecYM.split("-");
+      targetLecMonthStr = `${ly}년 ${lm}월`;
+    }
+
+    // 2. 구독 월 필터 상태에 따른 대상 년월 결정
+    const isSubMonthFiltered = Boolean(state.subFilterMonth && state.subFilterMonth !== "all");
+    let targetSubYM = currentYearMonth;
+    let targetSubMonthStr = defaultMonthStr;
+    if (isSubMonthFiltered) {
+      targetSubYM = state.subFilterMonth;
+      const [sy, sm] = targetSubYM.split("-");
+      targetSubMonthStr = `${sy}년 ${sm}월`;
+    }
 
     if ($("#stat-net-title")) {
-      $("#stat-net-title").textContent = `${formattedMonthStr} 강의 수입 합계`;
+      $("#stat-net-title").textContent = `${targetLecMonthStr} 강의 수입`;
+    }
+    if ($("#stat-net-badge")) {
+      $("#stat-net-badge").textContent = isLecMonthFiltered ? "선택한 월" : "This Month";
     }
 
     // 비로그인 상태일 때 대시보드 통계 보안 가림 처리
@@ -418,27 +443,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       .filter(l => l.completed)
       .reduce((acc, curr) => acc + (curr.fee || 0), 0);
 
-    // 당월 강의 수입 산출
-    const currentMonthLectures = lectures.filter(l => l.date && l.date.startsWith(currentYearMonth));
-    const currentMonthFee = currentMonthLectures.reduce((acc, curr) => acc + (curr.fee || 0), 0);
-    const currentMonthCompletedFee = currentMonthLectures
+    // 대상 월(선택 월 또는 당월) 강의 수입 산출
+    const targetLecItems = lectures.filter(l => l.date && l.date.startsWith(targetLecYM));
+    const targetLecFee = targetLecItems.reduce((acc, curr) => acc + (curr.fee || 0), 0);
+    const targetLecCompletedFee = targetLecItems
       .filter(l => l.completed)
       .reduce((acc, curr) => acc + (curr.fee || 0), 0);
 
-    // 당월 구독 지출 산출 (payDate 기준)
-    const currentMonthSubs = subs.filter(s => s.payDate && s.payDate.startsWith(currentYearMonth));
-    const currentMonthSubKRW = currentMonthSubs.reduce((acc, curr) => acc + (curr.amountKRW || 0), 0);
-    const currentMonthSubUSD = currentMonthSubs.reduce((acc, curr) => acc + (curr.amountUSD || 0), 0);
+    // 대상 월(선택 월 또는 당월) 구독 지출 산출 (payDate 기준)
+    const targetSubItems = subs.filter(s => s.payDate && s.payDate.startsWith(targetSubYM));
+    const targetSubKRW = targetSubItems.reduce((acc, curr) => acc + (curr.amountKRW || 0), 0);
+    const targetSubUSD = targetSubItems.reduce((acc, curr) => acc + (curr.amountUSD || 0), 0);
 
-    // 1. 당월 강의 수입
+    // 1. 강의 수입 요약 카드 (선택 월 또는 당월)
     if ($("#stat-net-title")) {
-      $("#stat-net-title").textContent = `${formattedMonthStr} 강의 수입`;
+      $("#stat-net-title").textContent = `${targetLecMonthStr} 강의 수입`;
+    }
+    if ($("#stat-net-badge")) {
+      $("#stat-net-badge").textContent = isLecMonthFiltered ? "선택한 월" : "This Month";
     }
     if ($("#stat-net-income")) {
-      $("#stat-net-income").textContent = currentMonthFee.toLocaleString() + "원";
+      $("#stat-net-income").textContent = targetLecFee.toLocaleString() + "원";
     }
     if ($("#stat-net-subtext")) {
-      $("#stat-net-subtext").textContent = `${formattedMonthStr} 완료: ${currentMonthCompletedFee.toLocaleString()}원`;
+      $("#stat-net-subtext").textContent = `${targetLecMonthStr} 완료: ${targetLecCompletedFee.toLocaleString()}원`;
     }
 
     // 2. 전체 강의 수입
@@ -449,15 +477,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       $("#stat-completed-fee").textContent = `완료: ${completedLectureFee.toLocaleString()}원`;
     }
 
-    // 3. 당월 구독 지출
+    // 3. 구독 지출 요약 카드 (선택 월 또는 당월)
     if ($("#stat-sub-cost-title")) {
-      $("#stat-sub-cost-title").textContent = `${formattedMonthStr} 구독 지출`;
+      $("#stat-sub-cost-title").textContent = `${targetSubMonthStr} 구독 지출`;
+    }
+    if ($("#stat-sub-badge")) {
+      $("#stat-sub-badge").textContent = isSubMonthFiltered ? "선택한 월" : "This Month";
     }
     if ($("#stat-sub-cost")) {
-      $("#stat-sub-cost").textContent = `${currentMonthSubKRW.toLocaleString()}원 ($${currentMonthSubUSD})`;
+      $("#stat-sub-cost").textContent = `${targetSubKRW.toLocaleString()}원 ($${targetSubUSD})`;
     }
     if ($("#stat-sub-count")) {
-      $("#stat-sub-count").textContent = `${formattedMonthStr} 결제: ${currentMonthSubs.length}건 (전체 구독 ${subs.length}개)`;
+      $("#stat-sub-count").textContent = `${targetSubMonthStr} 결제: ${targetSubItems.length}건 (전체 구독 ${subs.length}개)`;
     }
 
     // 4. 구독 묶음 그룹명별 임박 D-Day 산출 및 렌더링 (배지 우선 표시)
@@ -591,10 +622,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             <div class="topic-title"><strong>${escapeHtml(item.topic)}</strong></div>
             ${groupTag ? `<div class="topic-group-wrap" style="margin-top: 4px;">${groupTag}</div>` : ""}
           </td>
-          <td class="text-center cell-ellipsis" style="max-width: 100px;" title="${escapeHtml(item.target || '')}">${escapeHtml(item.target || "-")}</td>
+          <td class="text-center cell-wrap" style="width: 130px;">${escapeHtml(item.target || "-")}</td>
           <td class="text-center cell-ellipsis" style="max-width: 85px;" title="${escapeHtml(item.referrer || '')}">${escapeHtml(item.referrer || "-")}</td>
-          <td class="cell-ellipsis" style="max-width: 130px;" title="${escapeHtml(item.location || '')}">${escapeHtml(item.location || "-")}</td>
-          <td class="text-center cell-ellipsis" style="max-width: 90px;" title="${escapeHtml(item.time || '')}">${escapeHtml(item.time || "-")}</td>
+          <td class="cell-wrap" style="width: 150px;">${escapeHtml(item.location || "-")}</td>
+          <td class="text-center cell-wrap" style="width: 130px;">${escapeHtml(item.time || "-")}</td>
           <td class="text-right"><strong>${(item.fee || 0).toLocaleString()}원</strong></td>
           <td class="text-center">${statusBadge}</td>
           <td class="text-center">

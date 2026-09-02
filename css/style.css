@@ -552,6 +552,7 @@ p { font-size: 14px; color: var(--body); }
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   text-align: left;
   font-size: 13.5px;
   min-width: 980px;
@@ -606,6 +607,13 @@ p { font-size: 14px; color: var(--body); }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.cell-wrap {
+  white-space: normal !important;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-height: 1.4;
 }
 
 .data-table tbody tr:last-child td {
