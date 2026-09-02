@@ -591,10 +591,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             <div class="topic-title"><strong>${escapeHtml(item.topic)}</strong></div>
             ${groupTag ? `<div class="topic-group-wrap" style="margin-top: 4px;">${groupTag}</div>` : ""}
           </td>
-          <td class="text-center cell-ellipsis" style="max-width: 80px;" title="${escapeHtml(item.target || '')}">${escapeHtml(item.target || "-")}</td>
+          <td class="text-center cell-ellipsis" style="max-width: 100px;" title="${escapeHtml(item.target || '')}">${escapeHtml(item.target || "-")}</td>
           <td class="text-center cell-ellipsis" style="max-width: 85px;" title="${escapeHtml(item.referrer || '')}">${escapeHtml(item.referrer || "-")}</td>
-          <td class="cell-ellipsis" style="max-width: 110px;" title="${escapeHtml(item.location || '')}">${escapeHtml(item.location || "-")}</td>
-          <td class="text-center cell-ellipsis" style="max-width: 70px;" title="${escapeHtml(item.time || '')}">${escapeHtml(item.time || "-")}</td>
+          <td class="cell-ellipsis" style="max-width: 130px;" title="${escapeHtml(item.location || '')}">${escapeHtml(item.location || "-")}</td>
+          <td class="text-center cell-ellipsis" style="max-width: 90px;" title="${escapeHtml(item.time || '')}">${escapeHtml(item.time || "-")}</td>
           <td class="text-right"><strong>${(item.fee || 0).toLocaleString()}원</strong></td>
           <td class="text-center">${statusBadge}</td>
           <td class="text-center">
