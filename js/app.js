@@ -586,19 +586,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       return `
         <tr class="${item.completed ? 'completed-row' : ''} ${item.groupTitle ? 'group-row' : ''}">
           <td class="text-center">${completeBtn}</td>
-          <td>${item.date || "-"}</td>
+          <td class="text-center">${item.date || "-"}</td>
           <td class="topic-cell">
             <div class="topic-title"><strong>${escapeHtml(item.topic)}</strong></div>
             ${groupTag ? `<div class="topic-group-wrap" style="margin-top: 4px;">${groupTag}</div>` : ""}
           </td>
-          <td class="cell-ellipsis" style="max-width: 80px;" title="${escapeHtml(item.target || '')}">${escapeHtml(item.target || "-")}</td>
-          <td class="cell-ellipsis" style="max-width: 90px;" title="${escapeHtml(item.referrer || '')}">${escapeHtml(item.referrer || "-")}</td>
-          <td class="cell-ellipsis" style="max-width: 100px;" title="${escapeHtml(item.location || '')}">${escapeHtml(item.location || "-")}</td>
-          <td class="cell-ellipsis" style="max-width: 75px;" title="${escapeHtml(item.time || '')}">${escapeHtml(item.time || "-")}</td>
+          <td class="text-center cell-ellipsis" style="max-width: 80px;" title="${escapeHtml(item.target || '')}">${escapeHtml(item.target || "-")}</td>
+          <td class="text-center cell-ellipsis" style="max-width: 85px;" title="${escapeHtml(item.referrer || '')}">${escapeHtml(item.referrer || "-")}</td>
+          <td class="cell-ellipsis" style="max-width: 110px;" title="${escapeHtml(item.location || '')}">${escapeHtml(item.location || "-")}</td>
+          <td class="text-center cell-ellipsis" style="max-width: 70px;" title="${escapeHtml(item.time || '')}">${escapeHtml(item.time || "-")}</td>
           <td class="text-right"><strong>${(item.fee || 0).toLocaleString()}원</strong></td>
           <td class="text-center">${statusBadge}</td>
           <td class="text-center">
-            <div style="display: flex; gap: 6px; align-items: center; justify-content: center;">
+            <div style="display: flex; gap: 4px; align-items: center; justify-content: center;">
               <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="copy-lecture" title="강의 복사하여 추가">📋 복사</button>
               <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="edit-lecture">수정</button>
               <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="delete-lecture" style="color: var(--error);">삭제</button>
@@ -843,16 +843,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             <div class="topic-title">${titleDisplay}</div>
             ${groupTag ? `<div class="topic-group-wrap" style="margin-top: 4px;">${groupTag}</div>` : ""}
           </td>
-          <td>${item.expiryDate || "-"} ${dDayBadge}</td>
+          <td class="text-center">${item.expiryDate || "-"} ${dDayBadge}</td>
           <td class="text-right">$${(item.amountUSD || 0).toLocaleString()}</td>
           <td class="text-right"><strong>${(item.amountKRW || 0).toLocaleString()}원</strong></td>
-          <td>${item.payDate || "-"}</td>
+          <td class="text-center">${item.payDate || "-"}</td>
           <td class="text-center">
             ${item.completed ? `<span class="badge-pill badge-success">✓ 결제완료</span>` : `<span class="badge-pill badge-pending">⏳ 미결제</span>`}
           </td>
-          <td>${escapeHtml(item.remarks || "-")}</td>
-          <td>
-            <div style="display: flex; gap: 6px;">
+          <td class="cell-ellipsis" style="max-width: 120px;" title="${escapeHtml(item.remarks || '')}">${escapeHtml(item.remarks || "-")}</td>
+          <td class="text-center">
+            <div style="display: flex; gap: 4px; align-items: center; justify-content: center;">
               <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="copy-sub" title="구독 항목 복사하여 추가">📋 복사</button>
               <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="edit-sub">수정</button>
               <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="delete-sub" style="color: var(--error);">삭제</button>
