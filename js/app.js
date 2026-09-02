@@ -625,11 +625,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="text-center cell-wrap" style="width: 130px;">${escapeHtml(item.target || "-")}</td>
           <td class="text-center cell-ellipsis" style="max-width: 85px;" title="${escapeHtml(item.referrer || '')}">${escapeHtml(item.referrer || "-")}</td>
           <td class="cell-wrap" style="width: 150px;">${escapeHtml(item.location || "-")}</td>
-          <td class="text-center cell-wrap" style="width: 130px;">${escapeHtml(item.time || "-")}</td>
-          <td class="text-right"><strong>${(item.fee || 0).toLocaleString()}원</strong></td>
-          <td class="text-center">${statusBadge}</td>
-          <td class="text-center">
-            <div style="display: flex; gap: 4px; align-items: center; justify-content: center;">
+          <td class="text-center cell-wrap" style="width: 90px;">${escapeHtml(item.time || "-")}</td>
+          <td class="text-right" style="width: 95px;"><strong>${(item.fee || 0).toLocaleString()}원</strong></td>
+          <td class="text-center" style="width: 75px;">${statusBadge}</td>
+          <td class="text-center" style="width: 210px;">
+            <div style="display: flex; gap: 6px; align-items: center; justify-content: center;">
               <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="copy-lecture" title="강의 복사하여 추가">📋 복사</button>
               <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="edit-lecture">수정</button>
               <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="delete-lecture" style="color: var(--error);">삭제</button>
