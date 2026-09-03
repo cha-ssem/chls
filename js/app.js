@@ -210,6 +210,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     await renderApp();
   });
 
+  // 날짜의 '월'만 +1 증가시키는 유틸리티 함수 (연도 및 말일 자동 보정)
+  function getNextMonthDate(dateStr) {
+    if (!dateStr || typeof dateStr !== "string") return "";
+    const parts = dateStr.trim().split("-");
+    if (parts.length < 3) return "";
+    let year = parseInt(parts[0], 10);
+    let month = parseInt(parts[1], 10);
+    let day = parseInt(parts[2], 10);
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return "";
+
+    month += 1;
+    if (month > 12) {
+      year += 1;
+      month = 1;
+    }
+
+    // 익월의 최대 일수 초과 방지 (예: 1월 31일 -> 2월 28일)
+    const maxDays = new Date(year, month, 0).getDate();
+    if (day > maxDays) {
+      day = maxDays;
+    }
+
+    const yStr = String(year);
+    const mStr = String(month).padStart(2, "0");
+    const dStr = String(day).padStart(2, "0");
+    return `${yStr}-${mStr}-${dStr}`;
+  }
+
   // 7. 구독 폼 제출
   const subFormSelector = $("#sub-form") ? "#sub-form" : "#subscription-form";
   on(subFormSelector, "submit", async (e) => {
@@ -218,6 +246,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const usd = usdEl ? (Number(usdEl.value) || 0) : 0;
     const krwEl = $("#sub-krw") || $("#form-sub-krw");
     const krw = (krwEl && krwEl.value !== "") ? (Number(krwEl.value) || 0) : Math.round(usd * (state.exchangeRate || 1380));
+    const autoRenewEl = $("#sub-autorenew");
+    const autoRenew = autoRenewEl ? autoRenewEl.checked : false;
 
     const formData = {
       title: $("#sub-title-input") ? $("#sub-title-input").value : "",
@@ -227,7 +257,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       expiryDate: $("#sub-expiry") ? $("#sub-expiry").value : "",
       payDate: $("#sub-paydate") ? $("#sub-paydate").value : "",
       groupTitle: $("#sub-group-input") ? $("#sub-group-input").value : "",
-      remarks: $("#sub-remarks") ? $("#sub-remarks").value : ""
+      remarks: $("#sub-remarks") ? $("#sub-remarks").value : "",
+      autoRenew: autoRenew
     };
 
     if (state.editingItem) {
@@ -878,11 +909,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const completeBtn = item.completed
         ? `<button class="btn btn-sm" style="background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;" data-id="${item.id}" data-action="toggle-sub" title="클릭시 진행중 목록으로 복원">✓ 완료됨</button>`
-        : `<button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="toggle-sub" title="클릭시 완료 목록으로 이동">완료</button>`;
+        : `<button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="toggle-sub" title="클릭시 완료 목록으로 이동 (자동갱신 시 익월 복제 생성)">완료</button>`;
+
+      const autoRenewChecked = item.autoRenew ? "checked" : "";
+      const autoRenewCheckbox = `<input type="checkbox" class="checkbox-custom auto-renew-toggle" data-id="${item.id}" ${autoRenewChecked} title="체크 시 완료 처리할 때 익월 항목이 자동 생성됩니다">`;
 
       return `
         <tr class="${item.completed ? 'completed-row' : ''}">
           <td class="text-center">${completeBtn}</td>
+          <td class="text-center">${autoRenewCheckbox}</td>
           <td class="topic-cell">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
               <span class="topic-title">${titleDisplay}</span>
@@ -896,7 +931,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="text-center">
             ${item.completed ? `<span class="badge-pill badge-success">✓ 결제완료</span>` : `<span class="badge-pill badge-pending">⏳ 미결제</span>`}
           </td>
-          <td class="cell-ellipsis" style="max-width: 120px;" title="${escapeHtml(item.remarks || '')}">${escapeHtml(item.remarks || "-")}</td>
+          <td class="cell-ellipsis" style="max-width: 110px;" title="${escapeHtml(item.remarks || '')}">${escapeHtml(item.remarks || "-")}</td>
           <td class="text-center">
             <div style="display: flex; gap: 4px; align-items: center; justify-content: center;">
               <button class="btn btn-secondary btn-sm btn-action-icon" data-id="${item.id}" data-action="copy-sub" title="복사" aria-label="복사">📋</button>
@@ -912,6 +947,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   function bindSubTableEvents(tbodyEl) {
     if (!tbodyEl) return;
     tbodyEl.addEventListener("click", async (e) => {
+      // 자동 갱신 체크박스 직접 클릭 시
+      const autoRenewEl = e.target.closest(".auto-renew-toggle");
+      if (autoRenewEl) {
+        if (!checkAdminPermission()) {
+          autoRenewEl.checked = !autoRenewEl.checked;
+          return;
+        }
+        const id = autoRenewEl.dataset.id;
+        await window.dataStore.updateSubscription(id, { autoRenew: autoRenewEl.checked });
+        return;
+      }
+
       const btn = e.target.closest("button[data-action]");
       if (!btn) return;
       const action = btn.dataset.action;
@@ -923,7 +970,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       const currentItem = subsList.find(s => String(s.id) === String(id));
 
       if (action === "toggle-sub" && currentItem) {
-        await window.dataStore.updateSubscription(id, { completed: !currentItem.completed });
+        const willBeCompleted = !currentItem.completed;
+
+        // 미완료 -> 완료 처리 시, 자동 갱신 체크되어 있으면 다음 결제 예정일 월+1 복사본을 진행 중 목록에 추가
+        if (willBeCompleted && currentItem.autoRenew) {
+          const nextExpiry = getNextMonthDate(currentItem.expiryDate);
+          const nextPayDate = currentItem.payDate ? getNextMonthDate(currentItem.payDate) : "";
+          const newSub = {
+            title: currentItem.title || "",
+            siteUrl: currentItem.siteUrl || "",
+            amountUSD: currentItem.amountUSD || 0,
+            amountKRW: currentItem.amountKRW || 0,
+            expiryDate: nextExpiry,
+            payDate: nextPayDate,
+            groupTitle: currentItem.groupTitle || "",
+            remarks: currentItem.remarks || "",
+            autoRenew: true,
+            completed: false
+          };
+          await window.dataStore.addSubscription(newSub);
+        }
+
+        await window.dataStore.updateSubscription(id, { completed: willBeCompleted });
         renderApp();
       } else if (action === "copy-sub" && currentItem) {
         openSubscriptionModal(currentItem, true);
@@ -1163,9 +1231,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       setVal("#sub-paydate", "#form-sub-paydate", item.payDate || "");
       setVal("#sub-group-input", "#form-sub-group", item.groupTitle || "");
       setVal("#sub-remarks", "#form-sub-remarks", item.remarks || "");
+      const autoRenewEl = $("#sub-autorenew");
+      if (autoRenewEl) autoRenewEl.checked = Boolean(item.autoRenew);
     } else {
       const form = $("#sub-form") || $("#subscription-form");
       if (form) form.reset();
+      const autoRenewEl = $("#sub-autorenew");
+      if (autoRenewEl) autoRenewEl.checked = false;
     }
 
     const modal = $("#modal-subscription");
