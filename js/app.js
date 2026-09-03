@@ -344,6 +344,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Initial Load (이벤트 등록 후 화면 렌더링)
   renderApp();
 
+  // 메인 사이트(chassem.ai.kr) SSO 연동 및 관리자 인증 상태 변경 이벤트 실시간 감지
+  window.addEventListener("adminAuthChanged", () => {
+    console.log("[App] 관리자 인증 상태 변경 감지 -> UI 및 데이터 리렌더링");
+    renderApp();
+  });
+
   // Global render caller
   async function renderApp() {
     try { updateAuthUI(); } catch (e) { console.warn("updateAuthUI err:", e); }

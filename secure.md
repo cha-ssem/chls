@@ -79,6 +79,27 @@
 
 ---
 
+## 4. 🌐 메인 사이트(chassem.ai.kr) SSO 관리자 자동 로그인 연동
+
+CheckLS는 메인 사이트(**chassem.ai.kr**)에서 관리자로 로그인한 사용자가 CheckLS에 접속할 때 별도의 OTP 인증 절차 없이 즉시 관리자로 자동 로그인되도록 다중 SSO(Single Sign-On) 메커니즘을 지원합니다.
+
+### 4.1 지원되는 자동 로그인 연동 방식
+
+1. **URL SSO 파라미터 전달 방식 (가장 간편한 방법)**:
+   * 메인 사이트(chassem.ai.kr)에서 관리자로 로그인된 상태에서 CheckLS 링크를 열 때 URL 뒤에 `?admin=true` 또는 `?auth=admin` 또는 `#admin=true`를 붙여서 이동합니다.
+   * **예시 링크**: `https://cha-ssem.github.io/checkLS/?admin=true` 또는 `https://checkls.chassem.ai.kr/?auth=admin`
+   * **보안 처리**: CheckLS가 로드되면서 인증 파라미터를 감지하여 즉시 관리자 권한을 활성화한 후, 주소창의 파라미터를 `window.history.replaceState`로 즉시 마스킹(삭제)하여 브라우저 히스토리나 화면에 키가 남지 않습니다.
+
+2. **도메인 공유 쿠키 방식 (Subdomain 환경)**:
+   * 메인 사이트와 CheckLS가 동일한 최상위 도메인(`.chassem.ai.kr`)을 공유하는 경우:
+   * 메인 사이트에서 로그인 시 `chassem_admin=true` 쿠키를 `domain=.chassem.ai.kr`로 설정하면 CheckLS 접속 시 쿠키를 감지하여 자동으로 로그인됩니다.
+
+3. **Cross-Origin postMessage & BroadcastChannel 실시간 연동**:
+   * 메인 사이트에서 CheckLS 탭이나 iframe에 `{ type: 'CHASSEM_ADMIN_LOGIN' }` 메시지를 전송하거나,
+   * 동일 브라우저의 다른 탭에서 관리자 로그인이 발생하면 `BroadcastChannel('chassem_auth_channel')`을 통해 실시간으로 로그인 상태가 동기화되어 화면이 즉시 잠금 해제됩니다.
+
+---
+
 ## 💡 [보안 가이드] Firebase 콘솔 권장 보안 규칙 (Firestore Rules)
 
 현재 Firebase의 Firestore Database를 더욱 완벽하게 보호하려면, [Firebase 콘솔](https://console.firebase.google.com/) ➔ **[Firestore Database]** ➔ **[규칙(Rules)]** 탭에서 아래와 같이 보안 규칙을 적용하는 것을 권장합니다:
