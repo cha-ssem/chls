@@ -698,7 +698,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function bindLectureTableEvents(tbodyEl) {
-    if (!tbodyEl) return;
+    if (!tbodyEl || tbodyEl._eventsBound) return;
+    tbodyEl._eventsBound = true;
+
     tbodyEl.addEventListener("click", async (e) => {
       const btn = e.target.closest("button[data-action]");
       if (!btn) return;
@@ -707,21 +709,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!action || !id) return;
 
       if (!checkAdminPermission()) return;
-      const lectures = await window.dataStore.getLectures();
-      const currentItem = lectures.find(l => String(l.id) === String(id));
+      if (btn.disabled) return;
+      btn.disabled = true;
 
-      if (action === "toggle-lecture" && currentItem) {
-        await window.dataStore.updateLecture(id, { completed: !currentItem.completed });
-        renderApp();
-      } else if (action === "copy-lecture" && currentItem) {
-        openLectureModal(currentItem, true);
-      } else if (action === "edit-lecture" && currentItem) {
-        openLectureModal(currentItem, false);
-      } else if (action === "delete-lecture") {
-        if (confirm("이 강의 내역을 삭제하시겠습니까?")) {
-          await window.dataStore.deleteLecture(id);
+      try {
+        const lectures = await window.dataStore.getLectures();
+        const currentItem = lectures.find(l => String(l.id) === String(id));
+
+        if (action === "toggle-lecture" && currentItem) {
+          await window.dataStore.updateLecture(id, { completed: !currentItem.completed });
           renderApp();
+        } else if (action === "copy-lecture" && currentItem) {
+          openLectureModal(currentItem, true);
+        } else if (action === "edit-lecture" && currentItem) {
+          openLectureModal(currentItem, false);
+        } else if (action === "delete-lecture") {
+          if (confirm("이 강의 내역을 삭제하시겠습니까?")) {
+            await window.dataStore.deleteLecture(id);
+            renderApp();
+          }
         }
+      } finally {
+        btn.disabled = false;
       }
     });
   }
@@ -945,7 +954,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function bindSubTableEvents(tbodyEl) {
-    if (!tbodyEl) return;
+    if (!tbodyEl || tbodyEl._eventsBound) return;
+    tbodyEl._eventsBound = true;
+
     tbodyEl.addEventListener("click", async (e) => {
       // 자동 갱신 체크박스 직접 클릭 시
       const autoRenewEl = e.target.closest(".auto-renew-toggle");
@@ -966,42 +977,49 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!action || !id) return;
 
       if (!checkAdminPermission()) return;
-      const subsList = await window.dataStore.getSubscriptions();
-      const currentItem = subsList.find(s => String(s.id) === String(id));
+      if (btn.disabled) return;
+      btn.disabled = true;
 
-      if (action === "toggle-sub" && currentItem) {
-        const willBeCompleted = !currentItem.completed;
+      try {
+        const subsList = await window.dataStore.getSubscriptions();
+        const currentItem = subsList.find(s => String(s.id) === String(id));
 
-        // 미완료 -> 완료 처리 시, 자동 갱신 체크되어 있으면 다음 결제 예정일 월+1 복사본을 진행 중 목록에 추가
-        if (willBeCompleted && currentItem.autoRenew) {
-          const nextExpiry = getNextMonthDate(currentItem.expiryDate);
-          const nextPayDate = currentItem.payDate ? getNextMonthDate(currentItem.payDate) : "";
-          const newSub = {
-            title: currentItem.title || "",
-            siteUrl: currentItem.siteUrl || "",
-            amountUSD: currentItem.amountUSD || 0,
-            amountKRW: currentItem.amountKRW || 0,
-            expiryDate: nextExpiry,
-            payDate: nextPayDate,
-            groupTitle: currentItem.groupTitle || "",
-            remarks: currentItem.remarks || "",
-            autoRenew: true,
-            completed: false
-          };
-          await window.dataStore.addSubscription(newSub);
-        }
+        if (action === "toggle-sub" && currentItem) {
+          const willBeCompleted = !currentItem.completed;
 
-        await window.dataStore.updateSubscription(id, { completed: willBeCompleted });
-        renderApp();
-      } else if (action === "copy-sub" && currentItem) {
-        openSubscriptionModal(currentItem, true);
-      } else if (action === "edit-sub" && currentItem) {
-        openSubscriptionModal(currentItem, false);
-      } else if (action === "delete-sub") {
-        if (confirm("이 구독 내역을 삭제하시겠습니까?")) {
-          await window.dataStore.deleteSubscription(id);
+          // 미완료 -> 완료 처리 시, 자동 갱신 체크되어 있으면 다음 결제 예정일 월+1 복사본을 1개만 생성
+          if (willBeCompleted && currentItem.autoRenew) {
+            const nextExpiry = getNextMonthDate(currentItem.expiryDate);
+            const nextPayDate = currentItem.payDate ? getNextMonthDate(currentItem.payDate) : "";
+            const newSub = {
+              title: currentItem.title || "",
+              siteUrl: currentItem.siteUrl || "",
+              amountUSD: currentItem.amountUSD || 0,
+              amountKRW: currentItem.amountKRW || 0,
+              expiryDate: nextExpiry,
+              payDate: nextPayDate,
+              groupTitle: currentItem.groupTitle || "",
+              remarks: currentItem.remarks || "",
+              autoRenew: true,
+              completed: false
+            };
+            await window.dataStore.addSubscription(newSub);
+          }
+
+          await window.dataStore.updateSubscription(id, { completed: willBeCompleted });
           renderApp();
+        } else if (action === "copy-sub" && currentItem) {
+          openSubscriptionModal(currentItem, true);
+        } else if (action === "edit-sub" && currentItem) {
+          openSubscriptionModal(currentItem, false);
+        } else if (action === "delete-sub") {
+          if (confirm("이 구독 내역을 삭제하시겠습니까?")) {
+            await window.dataStore.deleteSubscription(id);
+            renderApp();
+          }
         }
+      } finally {
+        btn.disabled = false;
       }
     });
   }
