@@ -641,12 +641,11 @@ p { font-size: 14px; color: var(--body); }
 }
 
 .data-table tr.completed-row {
-  opacity: 0.75;
+  opacity: 0.9;
 }
 
 .data-table tr.completed-row td.topic-cell {
-  text-decoration: line-through;
-  color: var(--muted);
+  text-decoration: none;
 }
 
 .checkbox-custom {
