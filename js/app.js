@@ -462,8 +462,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         return acc + (isNaN(net) ? 0 : net);
       }, 0);
 
-    // 대상 월(선택 월 또는 당월) 강의 수입 산출 (실수령 강의료의 합계로 설정)
-    const targetLecItems = lectures.filter(l => l.date && l.date.startsWith(targetLecYM));
+    // 대상 월(선택 월 또는 당월) 강의 수입 산출 (입금날짜 기준 & 실수령 강의료 합계)
+    const targetLecItems = lectures.filter(l => {
+      const depositDate = l.depositDate || l.payDate;
+      return depositDate && depositDate.startsWith(targetLecYM);
+    });
     const targetLecFee = targetLecItems.reduce((acc, curr) => {
       const net = (curr.netFee !== undefined && curr.netFee !== null && curr.netFee !== "") ? Number(curr.netFee) : (Number(curr.fee) || 0);
       return acc + (isNaN(net) ? 0 : net);
