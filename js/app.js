@@ -239,26 +239,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await renderApp();
   });
 
-  // 8. 네이버 환율 계산기 입력 연동
-  on("#calc-usd-input", "input", (e) => {
-    const usd = parseFloat(e.target.value) || 0;
-    const krw = Math.round(usd * state.exchangeRate);
-    const krwRes = $("#calc-krw-result");
-    if (krwRes) krwRes.value = krw.toLocaleString() + " 원";
-  });
-
-  on("#calc-rate-input", "input", (e) => {
-    state.exchangeRate = parseFloat(e.target.value) || 1350;
-    const usdInput = $("#calc-usd-input");
-    const usd = usdInput ? (parseFloat(usdInput.value) || 0) : 0;
-    const krw = Math.round(usd * state.exchangeRate);
-    const krwRes = $("#calc-krw-result");
-    if (krwRes) krwRes.value = krw.toLocaleString() + " 원";
-    const rateDisp = $("#current-rate-display");
-    if (rateDisp) rateDisp.textContent = state.exchangeRate.toLocaleString();
-  });
-
-  // 9. EmailJS OTP 인증번호 전송 버튼
+  // 8. EmailJS OTP 인증번호 전송 버튼
   on("#btn-send-otp", "click", async () => {
     const emailInput = $("#auth-email-input");
     const email = emailInput ? emailInput.value.trim() : "";
@@ -523,7 +504,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       $("#stat-sub-count").textContent = `${targetSubMonthStr} 결제: ${targetSubItems.length}건 (전체 구독 ${subs.length}개)`;
     }
 
-    // 4. 구독 묶음 그룹명별 임박 D-Day 산출 및 렌더링 (배지 우선 표시)
+    // 4. 구독 묶음 그룹명별 다음 결제 예정일 D-Day 산출 및 렌더링
     const ddayMap = {};
     subs.forEach(s => {
       if (!s.expiryDate) return;
@@ -537,16 +518,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (ddayListContainer) {
       const entries = Object.entries(ddayMap);
       if (entries.length === 0) {
-        ddayListContainer.innerHTML = `<span class="muted" style="font-size: 13px;">만료 예정 구독 없음</span>`;
+        ddayListContainer.innerHTML = `<span class="muted" style="font-size: 13px;">결제 예정 구독 없음</span>`;
       } else {
         entries.sort((a, b) => new Date(a[1]) - new Date(b[1]));
 
         ddayListContainer.innerHTML = `
           <div class="sub-dday-list-wrap">
             ${entries.slice(0, 3).map(([key, expDate]) => `
-              <div class="sub-dday-item">
-                ${getDDayBadge(expDate)}
-                <span class="group-name" title="${escapeHtml(key)}">${escapeHtml(key)}</span>
+              <div class="sub-dday-item" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; flex: 1;">
+                  ${getDDayBadge(expDate)}
+                  <span class="group-name" title="${escapeHtml(key)}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(key)}</span>
+                </div>
+                <span style="font-size: 11.5px; color: var(--muted); flex-shrink: 0; font-weight: 500;">${expDate}</span>
               </div>
             `).join("")}
           </div>
@@ -835,7 +819,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
-      return `<span class="badge-pill badge-d-day">⚠️ 만료됨</span>`;
+      return `<span class="badge-pill badge-d-day">⚠️ D+${Math.abs(diffDays)}</span>`;
     } else if (diffDays === 0) {
       return `<span class="badge-pill badge-d-day">🔥 D-DAY</span>`;
     } else if (diffDays <= 3) {
@@ -919,9 +903,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       return `
         <tr class="${item.completed ? 'completed-row' : ''}">
           <td class="text-center">${completeBtn}</td>
-          <td>
-            <div class="topic-title">${titleDisplay}</div>
-            ${groupTag ? `<div class="topic-group-wrap" style="margin-top: 4px;">${groupTag}</div>` : ""}
+          <td class="topic-cell">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
+              <span class="topic-title">${titleDisplay}</span>
+              ${groupTag ? `<span class="topic-group-wrap" style="flex-shrink: 0;">${groupTag}</span>` : ""}
+            </div>
           </td>
           <td class="text-center">${item.expiryDate || "-"} ${dDayBadge}</td>
           <td class="text-right">$${(item.amountUSD || 0).toLocaleString()}</td>

@@ -91,7 +91,7 @@
         <div class="card-value" style="font-size: 14px; font-weight: normal; font-family: var(--font-body);" id="stat-sub-dday-list">
           <!-- JS 동적 렌더링 -->
         </div>
-        <div class="card-subtext">그룹별 임박한 만료기간</div>
+        <div class="card-subtext">그룹별 다음 결제 예정일</div>
       </div>
     </section>
 
@@ -260,17 +260,13 @@
 
     <!-- 2. 구독 사항 관리 섹션 -->
     <section class="tab-content hidden" id="tab-subscriptions">
-      <!-- Naver Exchange Calculator Banner -->
-      <div class="exchange-banner">
-        <div class="exchange-info">
-          <span>🔤 실시간 달러 환율 계산기 (네이버 매매기준율 기준)</span>
-          <span class="exchange-rate-tag">현재 적용 환율: <strong>1 USD = <span id="current-exchange-rate">1,380</span> KRW</strong></span>
+      <!-- Naver Exchange Link Banner -->
+      <div class="exchange-banner" style="display: flex; justify-content: space-between; align-items: center; background-color: var(--surface-card); border: 1px solid var(--hairline); border-radius: var(--rounded-lg); padding: 14px 20px; margin-bottom: var(--spacing-xl);">
+        <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; color: var(--ink);">
+          <span>🔤 네이버 환율계산기 바로가기</span>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <input type="number" class="text-input" id="calc-usd-input" placeholder="달러($) 입력" style="width: 120px; height: 34px;">
-          <span style="font-weight: bold; color: var(--muted);">=</span>
-          <span id="calc-krw-result" style="font-weight: bold; color: var(--primary); min-width: 100px;">0 원</span>
-          <a href="https://search.naver.com/search.naver?query=환율계산기" target="_blank" class="btn btn-secondary btn-sm" style="margin-left: 8px;">네이버 환율계산기 ↗</a>
+        <div>
+          <a href="https://search.naver.com/search.naver?query=환율계산기" target="_blank" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">네이버 환율계산기 ↗</a>
         </div>
       </div>
 
@@ -285,26 +281,26 @@
             <table class="data-table">
               <colgroup>
                 <col style="width: 80px;">
-                <col style="width: 200px;">
-                <col style="width: 130px;">
+                <col style="width: 230px;">
+                <col style="width: 140px;">
                 <col style="width: 95px;">
                 <col style="width: 110px;">
                 <col style="width: 85px;">
                 <col style="width: 85px;">
                 <col style="width: 120px;">
-                <col style="width: 150px;">
+                <col style="width: 130px;">
               </colgroup>
               <thead>
                 <tr>
                   <th style="width: 80px;" class="text-center">상태 변경</th>
-                  <th style="width: 200px;">구독 서비스 및 묶음 그룹</th>
-                  <th style="width: 130px;" class="text-center">만료기간 (D-Day)</th>
+                  <th style="width: 230px;">구독 서비스 및 묶음 그룹</th>
+                  <th style="width: 140px;" class="text-center">다음 결제 예정일 (D-Day)</th>
                   <th style="width: 95px;" class="text-right">결제금액($)</th>
-                  <th style="width: 110px;" class="text-right">원화추정액(₩)</th>
+                  <th style="width: 110px;" class="text-right">실제결제금액(₩)</th>
                   <th style="width: 85px;" class="text-center">결제일</th>
                   <th style="width: 85px;" class="text-center">결제상태</th>
                   <th style="width: 120px;">비고 및 메모</th>
-                  <th style="width: 150px;" class="text-center">관리</th>
+                  <th style="width: 130px;" class="text-center">관리</th>
                 </tr>
               </thead>
               <tbody id="sub-pending-tbody">
@@ -323,26 +319,26 @@
             <table class="data-table">
               <colgroup>
                 <col style="width: 80px;">
-                <col style="width: 200px;">
-                <col style="width: 130px;">
+                <col style="width: 230px;">
+                <col style="width: 140px;">
                 <col style="width: 95px;">
                 <col style="width: 110px;">
                 <col style="width: 85px;">
                 <col style="width: 85px;">
                 <col style="width: 120px;">
-                <col style="width: 150px;">
+                <col style="width: 130px;">
               </colgroup>
               <thead>
                 <tr>
                   <th style="width: 80px;" class="text-center">상태 복원</th>
-                  <th style="width: 200px;">구독 서비스 및 묶음 그룹</th>
-                  <th style="width: 130px;" class="text-center">만료기간 (D-Day)</th>
+                  <th style="width: 230px;">구독 서비스 및 묶음 그룹</th>
+                  <th style="width: 140px;" class="text-center">다음 결제 예정일 (D-Day)</th>
                   <th style="width: 95px;" class="text-right">결제금액($)</th>
-                  <th style="width: 110px;" class="text-right">원화추정액(₩)</th>
+                  <th style="width: 110px;" class="text-right">실제결제금액(₩)</th>
                   <th style="width: 85px;" class="text-center">결제일</th>
                   <th style="width: 85px;" class="text-center">결제상태</th>
                   <th style="width: 120px;">비고 및 메모</th>
-                  <th style="width: 150px;" class="text-center">관리</th>
+                  <th style="width: 130px;" class="text-center">관리</th>
                 </tr>
               </thead>
               <tbody id="sub-completed-tbody">
@@ -457,7 +453,7 @@
             <input type="number" step="any" class="text-input" id="sub-usd" placeholder="예: 20" required>
           </div>
           <div class="form-group">
-            <label>만료일자 (D-Day)</label>
+            <label>다음 결제 예정일 (D-Day)</label>
             <input type="date" class="text-input" id="sub-expiry">
           </div>
           <div class="form-group">
