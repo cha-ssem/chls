@@ -371,7 +371,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const monthsSet = new Set(["2026-09", "2026-08", "2026-07", "2026-06"]);
 
-    lectures.forEach(l => { if (l.date && l.date.length >= 7) monthsSet.add(l.date.substring(0, 7)); });
+    lectures.forEach(l => {
+      if (l.date && l.date.length >= 7) monthsSet.add(l.date.substring(0, 7));
+      if (l.depositDate && l.depositDate.length >= 7) monthsSet.add(l.depositDate.substring(0, 7));
+      if (l.payDate && l.payDate.length >= 7) monthsSet.add(l.payDate.substring(0, 7));
+    });
     subs.forEach(s => { if (s.payDate && s.payDate.length >= 7) monthsSet.add(s.payDate.substring(0, 7)); });
 
     const sortedMonths = Array.from(monthsSet).sort().reverse();
@@ -556,7 +560,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     let lectures = await window.dataStore.getLectures();
 
     if (state.lectureFilterMonth !== "all") {
-      lectures = lectures.filter(l => l.date && l.date.startsWith(state.lectureFilterMonth));
+      const filterMonth = state.lectureFilterMonth;
+      lectures = lectures.filter(l => {
+        const hasDepositInMonth = (l.depositDate && l.depositDate.startsWith(filterMonth)) ||
+                                  (l.payDate && l.payDate.startsWith(filterMonth));
+        const hasDateInMonth = l.date && l.date.startsWith(filterMonth);
+        return hasDepositInMonth || hasDateInMonth;
+      });
     }
     if (state.lectureSearchQuery) {
       lectures = lectures.filter(l =>
