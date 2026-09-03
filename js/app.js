@@ -604,7 +604,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   function generateLectureRowsHTML(items, isCompletedTable) {
     if (items.length === 0) {
       const msg = isCompletedTable ? "처리 완료된 강의 내역이 없습니다." : "진행 중인 강의 내역이 없습니다.";
-      return `<tr><td colspan="10" class="text-center muted" style="padding: 24px;">${msg}</td></tr>`;
+      return `<tr><td colspan="11" class="text-center muted" style="padding: 24px;">${msg}</td></tr>`;
     }
 
     return items.map(item => {
@@ -620,6 +620,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         ? `<span class="badge-pill badge-group">🔗 ${escapeHtml(item.groupTitle)}</span>`
         : "";
 
+      const afterTaxFee = Math.round((item.fee || 0) * 0.967);
+
       return `
         <tr class="${item.completed ? 'completed-row' : ''} ${item.groupTitle ? 'group-row' : ''}">
           <td class="text-center">${completeBtn}</td>
@@ -633,12 +635,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="cell-wrap" style="width: 150px;">${escapeHtml(item.location || "-")}</td>
           <td class="text-center cell-wrap" style="width: 120px;">${escapeHtml(item.time || "-")}</td>
           <td class="text-right" style="width: 95px;"><strong>${(item.fee || 0).toLocaleString()}원</strong></td>
+          <td class="text-right" style="width: 95px; color: var(--primary); font-weight: 600;">${afterTaxFee.toLocaleString()}원</td>
           <td class="text-center" style="width: 75px;">${statusBadge}</td>
-          <td class="text-center" style="width: 180px;">
-            <div style="display: flex; gap: 6px; align-items: center; justify-content: center;">
-              <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="copy-lecture" title="강의 복사하여 추가">📋 복사</button>
-              <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="edit-lecture">수정</button>
-              <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="delete-lecture" style="color: var(--error);">삭제</button>
+          <td class="text-center" style="width: 130px;">
+            <div style="display: flex; gap: 4px; align-items: center; justify-content: center;">
+              <button class="btn btn-secondary btn-sm btn-action-icon" data-id="${item.id}" data-action="copy-lecture" title="복사" aria-label="복사">📋</button>
+              <button class="btn btn-secondary btn-sm btn-action-icon" data-id="${item.id}" data-action="edit-lecture" title="수정" aria-label="수정">✏️</button>
+              <button class="btn btn-secondary btn-sm btn-action-icon" data-id="${item.id}" data-action="delete-lecture" title="삭제" aria-label="삭제" style="color: var(--error);">🗑️</button>
             </div>
           </td>
         </tr>
@@ -890,9 +893,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="cell-ellipsis" style="max-width: 120px;" title="${escapeHtml(item.remarks || '')}">${escapeHtml(item.remarks || "-")}</td>
           <td class="text-center">
             <div style="display: flex; gap: 4px; align-items: center; justify-content: center;">
-              <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="copy-sub" title="구독 항목 복사하여 추가">📋 복사</button>
-              <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="edit-sub">수정</button>
-              <button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="delete-sub" style="color: var(--error);">삭제</button>
+              <button class="btn btn-secondary btn-sm btn-action-icon" data-id="${item.id}" data-action="copy-sub" title="복사" aria-label="복사">📋</button>
+              <button class="btn btn-secondary btn-sm btn-action-icon" data-id="${item.id}" data-action="edit-sub" title="수정" aria-label="수정">✏️</button>
+              <button class="btn btn-secondary btn-sm btn-action-icon" data-id="${item.id}" data-action="delete-sub" title="삭제" aria-label="삭제" style="color: var(--error);">🗑️</button>
             </div>
           </td>
         </tr>

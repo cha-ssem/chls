@@ -238,6 +238,18 @@ p { font-size: 14px; color: var(--body); }
   border-radius: var(--rounded-full);
 }
 
+.btn-action-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--rounded-sm);
+  line-height: 1;
+}
+
 /* Main Container & Layout (Cal.com SaaS Balanced Layout) */
 .container {
   width: 100%;
