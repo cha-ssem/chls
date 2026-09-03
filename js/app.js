@@ -216,14 +216,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     e.preventDefault();
     const usdEl = $("#sub-usd") || $("#form-sub-usd");
     const usd = usdEl ? (Number(usdEl.value) || 0) : 0;
-    const krw = Math.round(usd * state.exchangeRate);
+    const krwEl = $("#sub-krw") || $("#form-sub-krw");
+    const krw = (krwEl && krwEl.value !== "") ? (Number(krwEl.value) || 0) : Math.round(usd * (state.exchangeRate || 1380));
 
     const formData = {
       title: $("#sub-title-input") ? $("#sub-title-input").value : "",
       siteUrl: $("#sub-url") ? $("#sub-url").value : "",
-      expiryDate: $("#sub-expiry") ? $("#sub-expiry").value : "",
       amountUSD: usd,
       amountKRW: krw,
+      expiryDate: $("#sub-expiry") ? $("#sub-expiry").value : "",
       payDate: $("#sub-paydate") ? $("#sub-paydate").value : "",
       groupTitle: $("#sub-group-input") ? $("#sub-group-input").value : "",
       remarks: $("#sub-remarks") ? $("#sub-remarks").value : ""
@@ -526,11 +527,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           <div class="sub-dday-list-wrap">
             ${entries.slice(0, 3).map(([key, expDate]) => `
               <div class="sub-dday-item" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; flex: 1;">
+                <span class="group-name" title="${escapeHtml(key)}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; font-weight: 500;">${escapeHtml(key)}</span>
+                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                  <span style="font-size: 11.5px; color: var(--muted); font-weight: 500;">${expDate}</span>
                   ${getDDayBadge(expDate)}
-                  <span class="group-name" title="${escapeHtml(key)}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(key)}</span>
                 </div>
-                <span style="font-size: 11.5px; color: var(--muted); flex-shrink: 0; font-weight: 500;">${expDate}</span>
               </div>
             `).join("")}
           </div>
@@ -1156,8 +1157,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (item) {
       setVal("#sub-title-input", "#form-sub-title", isCopy ? `${item.title} (복사본)` : (item.title || ""));
       setVal("#sub-url", "#form-sub-url", item.siteUrl || "");
+      setVal("#sub-usd", "#form-sub-usd", item.amountUSD !== undefined && item.amountUSD !== null ? item.amountUSD : "");
+      setVal("#sub-krw", "#form-sub-krw", item.amountKRW !== undefined && item.amountKRW !== null ? item.amountKRW : "");
       setVal("#sub-expiry", "#form-sub-expiry", item.expiryDate || "");
-      setVal("#sub-usd", "#form-sub-usd", item.amountUSD !== undefined ? item.amountUSD : "");
       setVal("#sub-paydate", "#form-sub-paydate", item.payDate || "");
       setVal("#sub-group-input", "#form-sub-group", item.groupTitle || "");
       setVal("#sub-remarks", "#form-sub-remarks", item.remarks || "");
