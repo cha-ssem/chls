@@ -175,7 +175,7 @@
           <div class="table-responsive">
             <table class="data-table">
               <colgroup>
-                <col style="width: 80px;">
+                <col style="width: 85px;">
                 <col style="width: 95px;">
                 <col style="width: 200px;">
                 <col style="width: 130px;">
@@ -183,13 +183,13 @@
                 <col style="width: 150px;">
                 <col style="width: 120px;">
                 <col style="width: 95px;">
+                <col style="width: 105px;">
                 <col style="width: 95px;">
-                <col style="width: 75px;">
                 <col style="width: 130px;">
               </colgroup>
               <thead>
                 <tr>
-                  <th style="width: 80px;" class="text-center">상태 변경</th>
+                  <th style="width: 85px;" class="text-center">상태</th>
                   <th style="width: 95px;" class="text-center">날짜</th>
                   <th style="width: 200px;">강의 주제 및 그룹</th>
                   <th style="width: 130px;" class="text-center">대상자</th>
@@ -197,8 +197,8 @@
                   <th style="width: 150px;">강의 장소</th>
                   <th style="width: 120px;" class="text-center">시간</th>
                   <th style="width: 95px;" class="text-right">강의료(원)</th>
-                  <th style="width: 95px;" class="text-right">세후 강의료(원)</th>
-                  <th style="width: 75px;" class="text-center">완료여부</th>
+                  <th style="width: 105px;" class="text-right">실수령 강의료(원)</th>
+                  <th style="width: 95px;" class="text-center">입금날짜</th>
                   <th style="width: 130px;" class="text-center">관리</th>
                 </tr>
               </thead>
@@ -217,7 +217,7 @@
           <div class="table-responsive">
             <table class="data-table">
               <colgroup>
-                <col style="width: 80px;">
+                <col style="width: 85px;">
                 <col style="width: 95px;">
                 <col style="width: 200px;">
                 <col style="width: 130px;">
@@ -225,13 +225,13 @@
                 <col style="width: 150px;">
                 <col style="width: 120px;">
                 <col style="width: 95px;">
+                <col style="width: 105px;">
                 <col style="width: 95px;">
-                <col style="width: 75px;">
                 <col style="width: 130px;">
               </colgroup>
               <thead>
                 <tr>
-                  <th style="width: 80px;" class="text-center">상태 복원</th>
+                  <th style="width: 85px;" class="text-center">상태</th>
                   <th style="width: 95px;" class="text-center">날짜</th>
                   <th style="width: 200px;">강의 주제 및 그룹</th>
                   <th style="width: 130px;" class="text-center">대상자</th>
@@ -239,8 +239,8 @@
                   <th style="width: 150px;">강의 장소</th>
                   <th style="width: 120px;" class="text-center">시간</th>
                   <th style="width: 95px;" class="text-right">강의료(원)</th>
-                  <th style="width: 95px;" class="text-right">세후 강의료(원)</th>
-                  <th style="width: 75px;" class="text-center">완료여부</th>
+                  <th style="width: 105px;" class="text-right">실수령 강의료(원)</th>
+                  <th style="width: 95px;" class="text-center">입금날짜</th>
                   <th style="width: 130px;" class="text-center">관리</th>
                 </tr>
               </thead>
@@ -376,8 +376,16 @@
             <input type="date" class="text-input" id="lec-date" required>
           </div>
           <div class="form-group">
+            <label>입금날짜</label>
+            <input type="date" class="text-input" id="lec-deposit-date">
+          </div>
+          <div class="form-group">
             <label>강의료 (원) *</label>
             <input type="number" class="text-input" id="lec-fee" placeholder="예: 500000" required>
+          </div>
+          <div class="form-group">
+            <label>실수령 강의료 (원)</label>
+            <input type="number" class="text-input" id="lec-net-fee" placeholder="예: 483500 (자동계산/직접입력)">
           </div>
           <div class="form-group full-width">
             <label>회차 묶음 그룹명 (선택)</label>

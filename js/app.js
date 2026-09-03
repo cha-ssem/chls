@@ -182,14 +182,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 6. 강의 폼 제출
   on("#lecture-form", "submit", async (e) => {
     e.preventDefault();
+    const feeVal = $("#lec-fee") ? (Number($("#lec-fee").value) || 0) : 0;
+    const netFeeInputVal = $("#lec-net-fee") ? $("#lec-net-fee").value.trim() : "";
+    const netFeeVal = netFeeInputVal !== "" ? (Number(netFeeInputVal) || 0) : Math.round(feeVal * 0.967);
+
     const formData = {
       date: $("#lec-date") ? $("#lec-date").value : "",
+      depositDate: $("#lec-deposit-date") ? $("#lec-deposit-date").value : "",
       topic: $("#lec-topic") ? $("#lec-topic").value : "",
       target: $("#lec-target") ? $("#lec-target").value : "",
       referrer: $("#lec-referrer") ? $("#lec-referrer").value.trim() : "",
       location: $("#lec-location") ? $("#lec-location").value : "",
       time: $("#lec-time") ? $("#lec-time").value : "",
-      fee: $("#lec-fee") ? (Number($("#lec-fee").value) || 0) : 0,
+      fee: feeVal,
+      netFee: netFeeVal,
       groupTitle: $("#lec-group") ? $("#lec-group").value : "",
       remarks: $("#lec-remarks") ? $("#lec-remarks").value : ""
     };
@@ -202,6 +208,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     closeAllModals();
     await renderApp();
+  });
+
+  // 강의료 입력 시 실수령 강의료(3.3% 공제) 자동 연동
+  on("#lec-fee", "input", (e) => {
+    const fee = Number(e.target.value) || 0;
+    const netFeeEl = $("#lec-net-fee");
+    if (netFeeEl && (!netFeeEl.dataset.userEdited || netFeeEl.value === "")) {
+      netFeeEl.value = fee > 0 ? Math.round(fee * 0.967) : "";
+    }
+  });
+  on("#lec-net-fee", "input", () => {
+    const netFeeEl = $("#lec-net-fee");
+    if (netFeeEl) {
+      netFeeEl.dataset.userEdited = "true";
+    }
   });
 
   // 7. 구독 폼 제출
@@ -608,24 +629,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     return items.map(item => {
-      const statusBadge = item.completed
-        ? `<span class="badge-pill badge-success">✓ 완료</span>`
-        : `<span class="badge-pill badge-pending">⏳ 진행중</span>`;
-
-      const completeBtn = item.completed
-        ? `<button class="btn btn-sm" style="background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;" data-id="${item.id}" data-action="toggle-lecture" title="클릭시 진행중 목록으로 복원">✓ 완료됨</button>`
-        : `<button class="btn btn-secondary btn-sm" data-id="${item.id}" data-action="toggle-lecture" title="클릭시 완료 목록으로 이동">완료</button>`;
+      const statusBtn = item.completed
+        ? `<button class="badge-pill badge-success" style="cursor: pointer; border: 1px solid #a7f3d0;" data-id="${item.id}" data-action="toggle-lecture" title="클릭시 진행중으로 복원">✓ 완료</button>`
+        : `<button class="badge-pill badge-pending" style="cursor: pointer; border: 1px solid #fde68a;" data-id="${item.id}" data-action="toggle-lecture" title="클릭시 완료 처리">⏳ 진행중</button>`;
 
       const groupTag = item.groupTitle
         ? `<span class="badge-pill badge-group">🔗 ${escapeHtml(item.groupTitle)}</span>`
         : "";
 
-      const afterTaxFee = Math.round((item.fee || 0) * 0.967);
+      const actualNetFee = (item.netFee !== undefined && item.netFee !== null && item.netFee !== "")
+        ? Number(item.netFee)
+        : Math.round((item.fee || 0) * 0.967);
+
+      const depositDateDisplay = item.depositDate || item.payDate || "-";
 
       return `
         <tr class="${item.completed ? 'completed-row' : ''} ${item.groupTitle ? 'group-row' : ''}">
-          <td class="text-center">${completeBtn}</td>
-          <td class="text-center">${item.date || "-"}</td>
+          <td class="text-center" style="width: 85px;">${statusBtn}</td>
+          <td class="text-center" style="width: 95px;">${item.date || "-"}</td>
           <td class="topic-cell">
             <div class="topic-title"><strong>${escapeHtml(item.topic)}</strong></div>
             ${groupTag ? `<div class="topic-group-wrap" style="margin-top: 4px;">${groupTag}</div>` : ""}
@@ -635,8 +656,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="cell-wrap" style="width: 150px;">${escapeHtml(item.location || "-")}</td>
           <td class="text-center cell-wrap" style="width: 120px;">${escapeHtml(item.time || "-")}</td>
           <td class="text-right" style="width: 95px;"><strong>${(item.fee || 0).toLocaleString()}원</strong></td>
-          <td class="text-right" style="width: 95px; color: var(--primary); font-weight: 600;">${afterTaxFee.toLocaleString()}원</td>
-          <td class="text-center" style="width: 75px;">${statusBadge}</td>
+          <td class="text-right" style="width: 105px; color: var(--primary); font-weight: 600;">${actualNetFee.toLocaleString()}원</td>
+          <td class="text-center" style="width: 95px;">${escapeHtml(depositDateDisplay)}</td>
           <td class="text-center" style="width: 130px;">
             <div style="display: flex; gap: 4px; align-items: center; justify-content: center;">
               <button class="btn btn-secondary btn-sm btn-action-icon" data-id="${item.id}" data-action="copy-lecture" title="복사" aria-label="복사">📋</button>
@@ -1125,14 +1146,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (el) el.value = val;
     };
 
+    const netFeeEl = $("#lec-net-fee");
+    if (netFeeEl) {
+      delete netFeeEl.dataset.userEdited;
+    }
+
     if (item) {
       setVal("#lec-date", "#form-lec-date", item.date || "");
+      setVal("#lec-deposit-date", "#form-lec-deposit-date", item.depositDate || item.payDate || "");
+      setVal("#lec-fee", "#form-lec-fee", item.fee || "");
+      setVal("#lec-net-fee", "#form-lec-net-fee", item.netFee !== undefined && item.netFee !== null ? item.netFee : (item.fee ? Math.round(item.fee * 0.967) : ""));
       setVal("#lec-topic", "#form-lec-topic", isCopy ? `${item.topic} (복사본)` : (item.topic || ""));
       setVal("#lec-target", "#form-lec-target", item.target || "");
       setVal("#lec-referrer", "#form-lec-referrer", item.referrer || "");
       setVal("#lec-location", "#form-lec-location", item.location || "");
       setVal("#lec-time", "#form-lec-time", item.time || "");
-      setVal("#lec-fee", "#form-lec-fee", item.fee || "");
       setVal("#lec-group", "#form-lec-group", item.groupTitle || "");
       setVal("#lec-remarks", "#form-lec-remarks", item.remarks || "");
     } else {
