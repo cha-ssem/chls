@@ -667,51 +667,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function bindLectureTableEvents(tbodyEl) {
     if (!tbodyEl) return;
-    tbodyEl.querySelectorAll('[data-action="toggle-lecture"]').forEach(btn => {
+    tbodyEl.addEventListener("click", async (e) => {
+      const btn = e.target.closest("button[data-action]");
       if (!btn) return;
-      btn.addEventListener("click", async (e) => {
-        if (!checkAdminPermission()) return;
-        const id = e.currentTarget.dataset.id;
-        const lectures = await window.dataStore.getLectures();
-        const currentItem = lectures.find(l => l.id === id);
-        if (currentItem) {
-          await window.dataStore.updateLecture(id, { completed: !currentItem.completed });
-          renderApp();
-        }
-      });
-    });
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+      if (!action || !id) return;
 
-    tbodyEl.querySelectorAll('[data-action="copy-lecture"]').forEach(btn => {
-      if (!btn) return;
-      btn.addEventListener("click", async (e) => {
-        if (!checkAdminPermission()) return;
-        const id = e.currentTarget.dataset.id;
-        const lectures = await window.dataStore.getLectures();
-        const target = lectures.find(l => l.id === id);
-        if (target) openLectureModal(target, true);
-      });
-    });
+      if (!checkAdminPermission()) return;
+      const lectures = await window.dataStore.getLectures();
+      const currentItem = lectures.find(l => String(l.id) === String(id));
 
-    tbodyEl.querySelectorAll('[data-action="edit-lecture"]').forEach(btn => {
-      if (!btn) return;
-      btn.addEventListener("click", async (e) => {
-        if (!checkAdminPermission()) return;
-        const id = e.currentTarget.dataset.id;
-        const lectures = await window.dataStore.getLectures();
-        const target = lectures.find(l => l.id === id);
-        if (target) openLectureModal(target, false);
-      });
-    });
-
-    tbodyEl.querySelectorAll('[data-action="delete-lecture"]').forEach(btn => {
-      if (!btn) return;
-      btn.addEventListener("click", async (e) => {
-        if (!checkAdminPermission()) return;
+      if (action === "toggle-lecture" && currentItem) {
+        await window.dataStore.updateLecture(id, { completed: !currentItem.completed });
+        renderApp();
+      } else if (action === "copy-lecture" && currentItem) {
+        openLectureModal(currentItem, true);
+      } else if (action === "edit-lecture" && currentItem) {
+        openLectureModal(currentItem, false);
+      } else if (action === "delete-lecture") {
         if (confirm("이 강의 내역을 삭제하시겠습니까?")) {
-          await window.dataStore.deleteLecture(e.currentTarget.dataset.id);
+          await window.dataStore.deleteLecture(id);
           renderApp();
         }
-      });
+      }
     });
   }
 
@@ -931,51 +910,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function bindSubTableEvents(tbodyEl) {
     if (!tbodyEl) return;
-    tbodyEl.querySelectorAll('[data-action="toggle-sub"]').forEach(btn => {
+    tbodyEl.addEventListener("click", async (e) => {
+      const btn = e.target.closest("button[data-action]");
       if (!btn) return;
-      btn.addEventListener("click", async (e) => {
-        if (!checkAdminPermission()) return;
-        const id = e.currentTarget.dataset.id;
-        const subsList = await window.dataStore.getSubscriptions();
-        const currentItem = subsList.find(s => s.id === id);
-        if (currentItem) {
-          await window.dataStore.updateSubscription(id, { completed: !currentItem.completed });
-          renderApp();
-        }
-      });
-    });
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+      if (!action || !id) return;
 
-    tbodyEl.querySelectorAll('[data-action="copy-sub"]').forEach(btn => {
-      if (!btn) return;
-      btn.addEventListener("click", async (e) => {
-        if (!checkAdminPermission()) return;
-        const id = e.currentTarget.dataset.id;
-        const subsList = await window.dataStore.getSubscriptions();
-        const target = subsList.find(s => s.id === e.currentTarget.dataset.id);
-        if (target) openSubscriptionModal(target, true);
-      });
-    });
+      if (!checkAdminPermission()) return;
+      const subsList = await window.dataStore.getSubscriptions();
+      const currentItem = subsList.find(s => String(s.id) === String(id));
 
-    tbodyEl.querySelectorAll('[data-action="edit-sub"]').forEach(btn => {
-      if (!btn) return;
-      btn.addEventListener("click", async (e) => {
-        if (!checkAdminPermission()) return;
-        const id = e.currentTarget.dataset.id;
-        const subsList = await window.dataStore.getSubscriptions();
-        const target = subsList.find(s => s.id === e.currentTarget.dataset.id);
-        if (target) openSubscriptionModal(target, false);
-      });
-    });
-
-    tbodyEl.querySelectorAll('[data-action="delete-sub"]').forEach(btn => {
-      if (!btn) return;
-      btn.addEventListener("click", async (e) => {
-        if (!checkAdminPermission()) return;
+      if (action === "toggle-sub" && currentItem) {
+        await window.dataStore.updateSubscription(id, { completed: !currentItem.completed });
+        renderApp();
+      } else if (action === "copy-sub" && currentItem) {
+        openSubscriptionModal(currentItem, true);
+      } else if (action === "edit-sub" && currentItem) {
+        openSubscriptionModal(currentItem, false);
+      } else if (action === "delete-sub") {
         if (confirm("이 구독 내역을 삭제하시겠습니까?")) {
-          await window.dataStore.deleteSubscription(e.currentTarget.dataset.id);
+          await window.dataStore.deleteSubscription(id);
           renderApp();
         }
-      });
+      }
     });
   }
 
@@ -1121,20 +1079,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function updateGroupDatalists() {
-    const lectures = await window.dataStore.getLectures();
-    const subs = await window.dataStore.getSubscriptions();
+    try {
+      const lectures = await window.dataStore.getLectures();
+      const subs = await window.dataStore.getSubscriptions();
 
-    const lecGroups = [...new Set(lectures.map(l => l.groupTitle).filter(Boolean))];
-    const subGroups = [...new Set(subs.map(s => s.groupTitle).filter(Boolean))];
+      const lecGroups = [...new Set((lectures || []).map(l => l.groupTitle).filter(Boolean))];
+      const subGroups = [...new Set((subs || []).map(s => s.groupTitle).filter(Boolean))];
 
-    const lecDatalist = $("#lec-group-datalist");
-    if (lecDatalist) {
-      lecDatalist.innerHTML = lecGroups.map(g => `<option value="${escapeHtml(g)}"></option>`).join("");
-    }
+      const lecDatalist = $("#lecture-group-list") || $("#lec-group-datalist");
+      if (lecDatalist) {
+        lecDatalist.innerHTML = lecGroups.map(g => `<option value="${escapeHtml(g)}"></option>`).join("");
+      }
 
-    const subDatalist = $("#sub-group-datalist");
-    if (subDatalist) {
-      subDatalist.innerHTML = subGroups.map(g => `<option value="${escapeHtml(g)}"></option>`).join("");
+      const subDatalist = $("#sub-group-list") || $("#sub-group-datalist");
+      if (subDatalist) {
+        subDatalist.innerHTML = subGroups.map(g => `<option value="${escapeHtml(g)}"></option>`).join("");
+      }
+    } catch (err) {
+      console.warn("updateGroupDatalists error:", err);
     }
   }
 
@@ -1148,7 +1110,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const setVal = (id1, id2, val) => {
       const el = $(id1) || $(id2);
-      if (el) el.value = val;
+      if (el) el.value = (val !== undefined && val !== null) ? val : "";
     };
 
     if (item) {
@@ -1188,14 +1150,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const setVal = (id1, id2, val) => {
       const el = $(id1) || $(id2);
-      if (el) el.value = val;
+      if (el) el.value = (val !== undefined && val !== null) ? val : "";
     };
 
     if (item) {
       setVal("#sub-title-input", "#form-sub-title", isCopy ? `${item.title} (복사본)` : (item.title || ""));
       setVal("#sub-url", "#form-sub-url", item.siteUrl || "");
       setVal("#sub-expiry", "#form-sub-expiry", item.expiryDate || "");
-      setVal("#sub-usd", "#form-sub-usd", item.amountUSD || "");
+      setVal("#sub-usd", "#form-sub-usd", item.amountUSD !== undefined ? item.amountUSD : "");
       setVal("#sub-paydate", "#form-sub-paydate", item.payDate || "");
       setVal("#sub-group-input", "#form-sub-group", item.groupTitle || "");
       setVal("#sub-remarks", "#form-sub-remarks", item.remarks || "");
