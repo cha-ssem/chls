@@ -450,24 +450,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     const lectures = await window.dataStore.getLectures();
     const subs = await window.dataStore.getSubscriptions();
 
-    const totalLectureFee = lectures.reduce((acc, curr) => acc + (curr.fee || 0), 0);
+    // 전체 강의 수입 산출 (실수령 강의료 기준)
+    const totalLectureFee = lectures.reduce((acc, curr) => {
+      const net = (curr.netFee !== undefined && curr.netFee !== null && curr.netFee !== "") ? Number(curr.netFee) : (Number(curr.fee) || 0);
+      return acc + (isNaN(net) ? 0 : net);
+    }, 0);
     const completedLectureFee = lectures
       .filter(l => l.completed)
-      .reduce((acc, curr) => acc + (curr.fee || 0), 0);
+      .reduce((acc, curr) => {
+        const net = (curr.netFee !== undefined && curr.netFee !== null && curr.netFee !== "") ? Number(curr.netFee) : (Number(curr.fee) || 0);
+        return acc + (isNaN(net) ? 0 : net);
+      }, 0);
 
-    // 대상 월(선택 월 또는 당월) 강의 수입 산출
+    // 대상 월(선택 월 또는 당월) 강의 수입 산출 (실수령 강의료의 합계로 설정)
     const targetLecItems = lectures.filter(l => l.date && l.date.startsWith(targetLecYM));
-    const targetLecFee = targetLecItems.reduce((acc, curr) => acc + (curr.fee || 0), 0);
+    const targetLecFee = targetLecItems.reduce((acc, curr) => {
+      const net = (curr.netFee !== undefined && curr.netFee !== null && curr.netFee !== "") ? Number(curr.netFee) : (Number(curr.fee) || 0);
+      return acc + (isNaN(net) ? 0 : net);
+    }, 0);
     const targetLecCompletedFee = targetLecItems
       .filter(l => l.completed)
-      .reduce((acc, curr) => acc + (curr.fee || 0), 0);
+      .reduce((acc, curr) => {
+        const net = (curr.netFee !== undefined && curr.netFee !== null && curr.netFee !== "") ? Number(curr.netFee) : (Number(curr.fee) || 0);
+        return acc + (isNaN(net) ? 0 : net);
+      }, 0);
 
     // 대상 월(선택 월 또는 당월) 구독 지출 산출 (payDate 기준)
     const targetSubItems = subs.filter(s => s.payDate && s.payDate.startsWith(targetSubYM));
     const targetSubKRW = targetSubItems.reduce((acc, curr) => acc + (curr.amountKRW || 0), 0);
     const targetSubUSD = targetSubItems.reduce((acc, curr) => acc + (curr.amountUSD || 0), 0);
 
-    // 1. 강의 수입 요약 카드 (선택 월 또는 당월)
+    // 1. 강의 수입 요약 카드 (선택 월 또는 당월 실수령 강의료 합계)
     if ($("#stat-net-title")) {
       $("#stat-net-title").textContent = `${targetLecMonthStr} 강의 수입`;
     }
@@ -733,17 +746,24 @@ document.addEventListener("DOMContentLoaded", async () => {
       // 카드 내부 아이템 날짜 오름차순 정렬
       items.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
 
-      const monthTotal = items.reduce((acc, curr) => acc + (curr.fee || 0), 0);
+      const monthTotal = items.reduce((acc, curr) => {
+        const net = (curr.netFee !== undefined && curr.netFee !== null && curr.netFee !== "") ? Number(curr.netFee) : (Number(curr.fee) || 0);
+        return acc + (isNaN(net) ? 0 : net);
+      }, 0);
 
       const monthCard = document.createElement("div");
       monthCard.className = "month-card";
       monthCard.innerHTML = `
         <div class="month-card-header">
           <h3>📅 ${month}</h3>
-          <span class="badge-pill">합계: ${monthTotal.toLocaleString()}원</span>
+          <span class="badge-pill">실수령 합계: ${monthTotal.toLocaleString()}원</span>
         </div>
         <div class="month-item-list">
-          ${items.map(l => `
+          ${items.map(l => {
+            const actualNet = (l.netFee !== undefined && l.netFee !== null && l.netFee !== "" && Number(l.netFee) > 0)
+              ? ` (실수령: ${Number(l.netFee).toLocaleString()}원)`
+              : "";
+            return `
             <div class="month-item">
               <div class="month-item-top">
                 <span class="month-item-title">${escapeHtml(l.topic)}</span>
@@ -753,10 +773,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <span>📆 ${l.date}</span>
                 ${l.referrer ? `<span>👤 ${escapeHtml(l.referrer)}</span>` : ""}
                 <span>📍 ${escapeHtml(l.location || "장소 미정")}</span>
-                <span>💰 ${(l.fee || 0).toLocaleString()}원</span>
+                <span>💰 ${(l.fee || 0).toLocaleString()}원${actualNet}</span>
               </div>
             </div>
-          `).join("")}
+          `;
+          }).join("")}
         </div>
       `;
       container.appendChild(monthCard);
