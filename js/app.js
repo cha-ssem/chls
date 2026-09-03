@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     e.preventDefault();
     const feeVal = $("#lec-fee") ? (Number($("#lec-fee").value) || 0) : 0;
     const netFeeInputVal = $("#lec-net-fee") ? $("#lec-net-fee").value.trim() : "";
-    const netFeeVal = netFeeInputVal !== "" ? (Number(netFeeInputVal) || 0) : Math.round(feeVal * 0.967);
+    const netFeeVal = netFeeInputVal !== "" ? (Number(netFeeInputVal) || 0) : 0;
 
     const formData = {
       date: $("#lec-date") ? $("#lec-date").value : "",
@@ -208,21 +208,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     closeAllModals();
     await renderApp();
-  });
-
-  // 강의료 입력 시 실수령 강의료(3.3% 공제) 자동 연동
-  on("#lec-fee", "input", (e) => {
-    const fee = Number(e.target.value) || 0;
-    const netFeeEl = $("#lec-net-fee");
-    if (netFeeEl && (!netFeeEl.dataset.userEdited || netFeeEl.value === "")) {
-      netFeeEl.value = fee > 0 ? Math.round(fee * 0.967) : "";
-    }
-  });
-  on("#lec-net-fee", "input", () => {
-    const netFeeEl = $("#lec-net-fee");
-    if (netFeeEl) {
-      netFeeEl.dataset.userEdited = "true";
-    }
   });
 
   // 7. 구독 폼 제출
@@ -637,9 +622,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         ? `<span class="badge-pill badge-group">🔗 ${escapeHtml(item.groupTitle)}</span>`
         : "";
 
-      const actualNetFee = (item.netFee !== undefined && item.netFee !== null && item.netFee !== "")
-        ? Number(item.netFee)
-        : Math.round((item.fee || 0) * 0.967);
+      const actualNetFeeDisplay = (item.netFee !== undefined && item.netFee !== null && item.netFee !== "" && Number(item.netFee) > 0)
+        ? `${Number(item.netFee).toLocaleString()}원`
+        : "-";
 
       const depositDateDisplay = item.depositDate || item.payDate || "-";
 
@@ -656,7 +641,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="cell-wrap" style="width: 150px;">${escapeHtml(item.location || "-")}</td>
           <td class="text-center cell-wrap" style="width: 120px;">${escapeHtml(item.time || "-")}</td>
           <td class="text-right" style="width: 95px;"><strong>${(item.fee || 0).toLocaleString()}원</strong></td>
-          <td class="text-right" style="width: 105px; color: var(--primary); font-weight: 600;">${actualNetFee.toLocaleString()}원</td>
+          <td class="text-right" style="width: 105px; color: var(--primary); font-weight: 600;">${actualNetFeeDisplay}</td>
           <td class="text-center" style="width: 95px;">${escapeHtml(depositDateDisplay)}</td>
           <td class="text-center" style="width: 130px;">
             <div style="display: flex; gap: 4px; align-items: center; justify-content: center;">
@@ -1146,16 +1131,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (el) el.value = val;
     };
 
-    const netFeeEl = $("#lec-net-fee");
-    if (netFeeEl) {
-      delete netFeeEl.dataset.userEdited;
-    }
-
     if (item) {
       setVal("#lec-date", "#form-lec-date", item.date || "");
       setVal("#lec-deposit-date", "#form-lec-deposit-date", item.depositDate || item.payDate || "");
       setVal("#lec-fee", "#form-lec-fee", item.fee || "");
-      setVal("#lec-net-fee", "#form-lec-net-fee", item.netFee !== undefined && item.netFee !== null ? item.netFee : (item.fee ? Math.round(item.fee * 0.967) : ""));
+      setVal("#lec-net-fee", "#form-lec-net-fee", item.netFee || "");
       setVal("#lec-topic", "#form-lec-topic", isCopy ? `${item.topic} (복사본)` : (item.topic || ""));
       setVal("#lec-target", "#form-lec-target", item.target || "");
       setVal("#lec-referrer", "#form-lec-referrer", item.referrer || "");
